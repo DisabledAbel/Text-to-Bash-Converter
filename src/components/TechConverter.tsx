@@ -149,7 +149,7 @@ const TechConverter = () => {
                     <img 
                       src={githubPreviewImage} 
                       alt="GitHub interface showing how code blocks appear"
-                      className="w-full rounded-md border border-border shadow-sm"
+                      className="w-full rounded-md border border-border shadow-lg"
                     />
                   </div>
                 </div>
@@ -161,7 +161,7 @@ const TechConverter = () => {
                     <img 
                       src={githubPreviewImage} 
                       alt="GitHub interface example"
-                      className="w-full max-w-sm rounded-md border border-border shadow-sm opacity-60"
+                      className="w-full rounded-md border border-border shadow-sm opacity-60"
                     />
                   </div>
                 </div>
