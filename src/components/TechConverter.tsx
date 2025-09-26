@@ -63,7 +63,7 @@ const TechConverter = () => {
         </div>
 
         {/* Main Content */}
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid xl:grid-cols-3 lg:grid-cols-2 gap-6">
           {/* Input Section */}
           <Card className="p-6 space-y-4">
             <div className="flex items-center justify-between">
@@ -117,11 +117,48 @@ const TechConverter = () => {
               )}
             </div>
           </Card>
+
+          {/* GitHub Preview Section */}
+          <Card className="p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">GitHub Preview</h2>
+              <div className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded">
+                How it looks on GitHub
+              </div>
+            </div>
+            <div className="min-h-[300px] bg-card rounded-md border border-border overflow-hidden">
+              {output ? (
+                <div className="p-4 bg-card">
+                  <div className="bg-code-bg rounded-md border border-border overflow-x-auto">
+                    <div className="flex items-center justify-between px-4 py-2 bg-secondary/50 border-b border-border">
+                      <span className="text-xs text-muted-foreground font-mono">bash</span>
+                      <div className="flex gap-1">
+                        <div className="w-3 h-3 rounded-full bg-destructive/40"></div>
+                        <div className="w-3 h-3 rounded-full bg-yellow-500/40"></div>
+                        <div className="w-3 h-3 rounded-full bg-green-500/40"></div>
+                      </div>
+                    </div>
+                    <pre className="p-4 text-sm font-mono text-foreground overflow-x-auto">
+                      <code>{input}</code>
+                    </pre>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                  <div className="text-center space-y-2">
+                    <Code2 className="h-12 w-12 mx-auto opacity-50" />
+                    <p className="text-sm">GitHub preview will appear here</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
         </div>
 
         {/* Footer */}
-        <div className="text-center text-muted-foreground text-sm">
+        <div className="text-center text-muted-foreground text-sm space-y-2">
           <p>Type or paste your code in the input area and see it formatted instantly</p>
+          <p className="text-xs">The GitHub preview shows how your code block will render in issues, PRs, and README files</p>
         </div>
       </div>
     </div>
