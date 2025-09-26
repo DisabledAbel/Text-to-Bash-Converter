@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Copy, Trash2, Code2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import githubPreviewImage from "@/assets/github-preview.png";
 
 const TechConverter = () => {
   const [input, setInput] = useState("");
@@ -128,26 +129,40 @@ const TechConverter = () => {
             </div>
             <div className="min-h-[300px] bg-card rounded-md border border-border overflow-hidden">
               {output ? (
-                <div className="p-4 bg-card">
-                  <div className="bg-code-bg rounded-md border border-border overflow-x-auto">
-                    <div className="flex items-center justify-between px-4 py-2 bg-secondary/50 border-b border-border">
-                      <span className="text-xs text-muted-foreground font-mono">bash</span>
-                      <div className="flex gap-1">
-                        <div className="w-3 h-3 rounded-full bg-destructive/40"></div>
-                        <div className="w-3 h-3 rounded-full bg-yellow-500/40"></div>
-                        <div className="w-3 h-3 rounded-full bg-green-500/40"></div>
+                <div className="space-y-4">
+                  <div className="p-4 bg-card">
+                    <div className="bg-code-bg rounded-md border border-border overflow-x-auto">
+                      <div className="flex items-center justify-between px-4 py-2 bg-secondary/50 border-b border-border">
+                        <span className="text-xs text-muted-foreground font-mono">bash</span>
+                        <div className="flex gap-1">
+                          <div className="w-3 h-3 rounded-full bg-destructive/40"></div>
+                          <div className="w-3 h-3 rounded-full bg-yellow-500/40"></div>
+                          <div className="w-3 h-3 rounded-full bg-green-500/40"></div>
+                        </div>
                       </div>
+                      <pre className="p-4 text-sm font-mono text-foreground overflow-x-auto">
+                        <code>{input}</code>
+                      </pre>
                     </div>
-                    <pre className="p-4 text-sm font-mono text-foreground overflow-x-auto">
-                      <code>{input}</code>
-                    </pre>
+                  </div>
+                  <div className="px-4 pb-4">
+                    <img 
+                      src={githubPreviewImage} 
+                      alt="GitHub interface showing how code blocks appear"
+                      className="w-full rounded-md border border-border shadow-sm"
+                    />
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-full text-muted-foreground">
-                  <div className="text-center space-y-2">
+                <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-4">
+                  <div className="text-center space-y-4">
                     <Code2 className="h-12 w-12 mx-auto opacity-50" />
                     <p className="text-sm">GitHub preview will appear here</p>
+                    <img 
+                      src={githubPreviewImage} 
+                      alt="GitHub interface example"
+                      className="w-full max-w-sm rounded-md border border-border shadow-sm opacity-60"
+                    />
                   </div>
                 </div>
               )}
