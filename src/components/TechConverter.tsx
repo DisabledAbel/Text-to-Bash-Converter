@@ -127,7 +127,7 @@ const TechConverter = () => {
                 How it looks on GitHub
               </div>
             </div>
-            <div className="min-h-[300px] bg-card rounded-md border border-border overflow-hidden">
+            <div className="min-h-[400px] bg-card rounded-md border border-border overflow-hidden">
               {output ? (
                 <div className="h-full flex flex-col">
                   <div className="p-4 bg-card">
@@ -163,7 +163,7 @@ const TechConverter = () => {
                     <img 
                       src={githubPreviewImage} 
                       alt="GitHub interface example"
-                      className="w-full h-full object-cover opacity-60"
+                      className="w-full h-full object-cover"
                     />
                   </div>
                 </div>
