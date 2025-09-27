@@ -2,8 +2,6 @@
 
 A beautiful, responsive web application that converts your tech code, commands, and snippets into properly formatted bash code blocks for GitHub, documentation, and other markdown platforms.
 
-![Tech to Bash Converter](src/assets/github-preview.png)
-
 ## ✨ Features
 
 - **Real-time Conversion**: Instantly converts your input to bash code blocks as you type
