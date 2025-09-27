@@ -9,11 +9,6 @@ A beautiful, responsive web application that converts your tech code, commands, 
 - **Real-time Conversion**: Instantly converts your input to bash code blocks as you type
 - **GitHub Preview**: See exactly how your code blocks will appear on GitHub
 - **One-Click Copy**: Copy formatted code blocks to clipboard with a single click
-- **Responsive Design**: Works perfectly on desktop, tablet, and mobile devices
-- **Clean Interface**: Modern, intuitive UI with dark/light mode support
-- **Live Preview**: Three-panel layout showing input, output, and GitHub preview
-- **Syntax Highlighting**: Visual bash syntax highlighting in the preview
-- **Clear Function**: Quickly clear all inputs with one click
 
 ## 🚀 Demo
 
