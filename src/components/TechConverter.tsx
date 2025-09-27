@@ -129,7 +129,7 @@ const TechConverter = () => {
             </div>
             <div className="min-h-[300px] bg-card rounded-md border border-border overflow-hidden">
               {output ? (
-                <div className="space-y-4">
+                <div className="h-full flex flex-col">
                   <div className="p-4 bg-card">
                     <div className="bg-code-bg rounded-md border border-border overflow-x-auto">
                       <div className="flex items-center justify-between px-4 py-2 bg-secondary/50 border-b border-border">
@@ -145,23 +145,25 @@ const TechConverter = () => {
                       </pre>
                     </div>
                   </div>
-                  <div className="px-4 pb-4">
+                  <div className="flex-1">
                     <img 
                       src={githubPreviewImage} 
                       alt="GitHub interface showing how code blocks appear"
-                      className="w-full rounded-md border border-border shadow-lg"
+                      className="w-full h-full object-cover"
                     />
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center h-full text-muted-foreground p-4">
-                  <div className="text-center space-y-4">
+                <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                  <div className="text-center space-y-4 p-4">
                     <Code2 className="h-12 w-12 mx-auto opacity-50" />
                     <p className="text-sm">GitHub preview will appear here</p>
+                  </div>
+                  <div className="flex-1 w-full">
                     <img 
                       src={githubPreviewImage} 
                       alt="GitHub interface example"
-                      className="w-full rounded-md border border-border shadow-sm opacity-60"
+                      className="w-full h-full object-cover opacity-60"
                     />
                   </div>
                 </div>
