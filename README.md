@@ -8,10 +8,6 @@ A beautiful, responsive web application that converts your tech code, commands, 
 - **GitHub Preview**: See exactly how your code blocks will appear on GitHub
 - **One-Click Copy**: Copy formatted code blocks to clipboard with a single click
 
-## 🚀 Demo
-
-Visit the live demo: [Tech to Bash Converter](https://lovable.dev/projects/dd1926f3-56c5-4ad2-9214-7b57dcb54346)
-
 ## 🛠️ Tech Stack
 
 - **Frontend**: React 18 + TypeScript
@@ -100,29 +96,6 @@ node --version
 
 ### Installation
 
-1. Clone the repository:
-```bash
-git clone <YOUR_GIT_URL>
-cd <YOUR_PROJECT_NAME>
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Start the development server:
-```bash
-npm run dev
-```
-
-4. Open your browser and navigate to `http://localhost:5173`
-
-### Build for Production
-
-```bash
-npm run build
-```
 
 ## 🎨 Features in Detail
 
@@ -164,14 +137,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 This project is licensed under the MIT License.
 
-## 🙏 Acknowledgments
-
-- [Shadcn/ui](https://ui.shadcn.com/) for the beautiful UI components
-- [Lucide React](https://lucide.dev/) for the icon set
-- [Tailwind CSS](https://tailwindcss.com/) for the styling system
-- [Vite](https://vitejs.dev/) for the build tool
-- [Lovable](https://lovable.dev/) for the development platform
-
 ---
 
-Made with ❤️ for developers who love clean, formatted code blocks.
+Made with ❤️ for developers and Disabled people
