@@ -108,7 +108,7 @@ node --version
     <span>🚀 Open Application</span>
   </button>
 </a>
-
+❤️💜🩷💙
 
 ## 🎨 Features in Detail
 
