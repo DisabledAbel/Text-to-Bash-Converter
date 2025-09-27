@@ -88,13 +88,26 @@ node --version
 - **Stack Overflow**: Format your questions and answers with proper syntax highlighting
 - **Team Communication**: Share formatted commands in Slack, Discord, or other platforms
 
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js 18+ 
-- npm or yarn
-
 ### Installation
+<a href="https://tech-to-bash.lovable.app" target="_blank" style="text-decoration: none;">
+  <button style="
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(90deg, #4f46e5, #6366f1);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+  " onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.2)';"
+     onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';">
+    <span>🚀 Open Application</span>
+  </button>
+</a>
 
 
 ## 🎨 Features in Detail
