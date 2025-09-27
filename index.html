@@ -1,28 +1,34 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tech to Bash Converter</title>
-    <meta name="description" content="Convert your tech input into properly formatted bash code blocks">
-    <meta name="author" content="Lovable" />
+<head>
+  <meta charset="UTF-8">
+  <title>Open Application Button</title>
+  <style>
+    .open-app-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(90deg, #4f46e5, #6366f1);
+      color: white;
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: 500;
+      padding: 12px 24px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
 
-    
-    
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/LO70qM9bJCPmIXJddE85ZDIZ8rp1/social-images/social-1758931593357-IMG_4458.jpeg">
-
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/LO70qM9bJCPmIXJddE85ZDIZ8rp1/social-images/social-1758931593357-IMG_4458.jpeg">
-    <meta property="og:title" content="Tech to Bash Converter">
-  <meta name="twitter:title" content="Tech to Bash Converter">
-  <meta property="og:description" content="Convert your tech input into properly formatted bash code blocks">
-  <meta name="twitter:description" content="Convert your tech input into properly formatted bash code blocks">
+    .open-app-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+  </style>
 </head>
-
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<body>
+  <a href="https://tech-to-bash.lovable.app" target="_blank" class="open-app-btn">
+    🚀 Open Application
+  </a>
+</body>
 </html>
