@@ -55,16 +55,24 @@ const TechConverter = () => {
 
   const addColorToText = (colorCode: string, resetCode: string) => {
     const textarea = inputRef.current;
-    if (!textarea) return;
+    if (!textarea) {
+      console.log("Textarea ref not available");
+      return;
+    }
 
+    // Focus the textarea first to ensure selection is active
+    textarea.focus();
+    
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const selectedText = input.substring(start, end);
 
-    if (!selectedText) {
+    console.log("Selection:", { start, end, selectedText, inputLength: input.length });
+
+    if (!selectedText || start === end) {
       toast({
         title: "No text selected",
-        description: "Please select text to colorize",
+        description: "Please select text first, then click a color",
         variant: "destructive",
       });
       return;
@@ -76,9 +84,16 @@ const TechConverter = () => {
     setInput(newInput);
     convertToBash(newInput);
 
+    // Restore focus and set cursor position after the colored text
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = start + coloredText.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+
     toast({
       title: "Color added!",
-      description: "Selected text has been colorized",
+      description: `Applied ${colorCode === "\\033[31m" ? "red" : "color"} to selected text`,
     });
   };
 
