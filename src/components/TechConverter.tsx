@@ -131,23 +131,29 @@ const TechConverter = () => {
             {/* Color Palette */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <Palette className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Select text, then pick a color:</span>
+                <Palette className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium text-foreground">Text Coloring:</span>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {colors.map((color) => (
-                  <Button
-                    key={color.name}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => addColorToText(color.code, color.reset)}
-                    className="text-xs px-3"
-                  >
-                    <span className={`${color.class} font-semibold`}>
-                      {color.name}
-                    </span>
-                  </Button>
-                ))}
+              <div className="bg-muted/50 p-3 rounded-md border border-dashed border-muted-foreground/30">
+                <p className="text-xs text-muted-foreground mb-2">
+                  💡 <strong>How to use:</strong> Highlight/select any text above, then click a color button
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {colors.map((color) => (
+                    <Button
+                      key={color.name}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addColorToText(color.code, color.reset)}
+                      className="text-xs px-3 hover:scale-105 transition-transform"
+                      title={`Add ${color.name.toLowerCase()} color to selected text`}
+                    >
+                      <span className={`${color.class} font-semibold`}>
+                        {color.name}
+                      </span>
+                    </Button>
+                  ))}
+                </div>
               </div>
             </div>
           </Card>
