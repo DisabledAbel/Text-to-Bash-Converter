@@ -60,9 +60,6 @@ const TechConverter = () => {
       return;
     }
 
-    // Focus the textarea first to ensure selection is active
-    textarea.focus();
-    
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const selectedText = input.substring(start, end);
@@ -159,6 +156,7 @@ const TechConverter = () => {
                       key={color.name}
                       variant="outline"
                       size="sm"
+                      onMouseDown={(e) => e.preventDefault()} // Prevent focus stealing
                       onClick={() => addColorToText(color.code, color.reset)}
                       className="text-xs px-3 hover:scale-105 transition-transform"
                       title={`Add ${color.name.toLowerCase()} color to selected text`}
