@@ -2,13 +2,18 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Copy, Trash2, Code2, Palette } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import githubPreviewImage from "@/assets/github-preview.png";
 
+type OutputFormat = "bash" | "typescript" | "javascript" | "python";
+
 const TechConverter = () => {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
+  const [outputFormat, setOutputFormat] = useState<OutputFormat>("bash");
+  const [selection, setSelection] = useState({ start: 0, end: 0 });
   const { toast } = useToast();
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -22,17 +27,32 @@ const TechConverter = () => {
     { name: "White", code: "\\033[37m", reset: "\\033[0m", class: "text-white" },
   ];
 
-  const convertToBash = (text: string) => {
+  const convertToCodeBlock = (text: string, format: OutputFormat) => {
     if (!text.trim()) {
       setOutput("");
       return;
     }
-    setOutput("```bash\n" + text + "\n```");
+    setOutput("```" + format + "\n" + text + "\n```");
   };
 
   const handleInputChange = (value: string) => {
     setInput(value);
-    convertToBash(value);
+    convertToCodeBlock(value, outputFormat);
+  };
+
+  const handleFormatChange = (format: OutputFormat) => {
+    setOutputFormat(format);
+    convertToCodeBlock(input, format);
+  };
+
+  const handleSelectionChange = () => {
+    const textarea = inputRef.current;
+    if (textarea) {
+      setSelection({
+        start: textarea.selectionStart,
+        end: textarea.selectionEnd
+      });
+    }
   };
 
   const copyToClipboard = async () => {
@@ -54,17 +74,8 @@ const TechConverter = () => {
   };
 
   const addColorToText = (colorCode: string, resetCode: string) => {
-    const textarea = inputRef.current;
-    if (!textarea) {
-      console.log("Textarea ref not available");
-      return;
-    }
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
+    const { start, end } = selection;
     const selectedText = input.substring(start, end);
-
-    console.log("Selection:", { start, end, selectedText, inputLength: input.length });
 
     if (!selectedText || start === end) {
       toast({
@@ -79,18 +90,21 @@ const TechConverter = () => {
     const newInput = input.substring(0, start) + coloredText + input.substring(end);
     
     setInput(newInput);
-    convertToBash(newInput);
+    convertToCodeBlock(newInput, outputFormat);
 
     // Restore focus and set cursor position after the colored text
     setTimeout(() => {
-      textarea.focus();
-      const newCursorPos = start + coloredText.length;
-      textarea.setSelectionRange(newCursorPos, newCursorPos);
+      const textarea = inputRef.current;
+      if (textarea) {
+        textarea.focus();
+        const newCursorPos = start + coloredText.length;
+        textarea.setSelectionRange(newCursorPos, newCursorPos);
+      }
     }, 0);
 
     toast({
       title: "Color added!",
-      description: `Applied ${colorCode === "\\033[31m" ? "red" : "color"} to selected text`,
+      description: "Applied to selected text",
     });
   };
 
@@ -136,6 +150,9 @@ const TechConverter = () => {
               placeholder="Enter your tech code, commands, or snippets here..."
               value={input}
               onChange={(e) => handleInputChange(e.target.value)}
+              onSelect={handleSelectionChange}
+              onMouseUp={handleSelectionChange}
+              onKeyUp={handleSelectionChange}
               className="min-h-[300px] font-mono text-sm bg-code-bg border-border resize-none focus:ring-primary"
               autoFocus
             />
@@ -175,15 +192,28 @@ const TechConverter = () => {
           <Card className="p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Output</h2>
-              <Button
-                variant="copy"
-                size="sm"
-                onClick={copyToClipboard}
-                disabled={!output}
-              >
-                <Copy className="h-4 w-4" />
-                Copy
-              </Button>
+              <div className="flex items-center gap-2">
+                <Select value={outputFormat} onValueChange={handleFormatChange}>
+                  <SelectTrigger className="w-[140px] h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bash">Bash</SelectItem>
+                    <SelectItem value="typescript">TypeScript</SelectItem>
+                    <SelectItem value="javascript">JavaScript</SelectItem>
+                    <SelectItem value="python">Python</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="copy"
+                  size="sm"
+                  onClick={copyToClipboard}
+                  disabled={!output}
+                >
+                  <Copy className="h-4 w-4" />
+                  Copy
+                </Button>
+              </div>
             </div>
             <div className="relative">
               <Textarea
@@ -195,7 +225,7 @@ const TechConverter = () => {
               {output && (
                 <div className="absolute top-2 right-2">
                   <div className="bg-primary/20 text-primary text-xs px-2 py-1 rounded">
-                    bash
+                    {outputFormat}
                   </div>
                 </div>
               )}
@@ -216,7 +246,7 @@ const TechConverter = () => {
                   <div className="p-4 bg-card">
                     <div className="bg-code-bg rounded-md border border-border overflow-x-auto">
                       <div className="flex items-center justify-between px-4 py-2 bg-secondary/50 border-b border-border">
-                        <span className="text-xs text-muted-foreground font-mono">bash</span>
+                        <span className="text-xs text-muted-foreground font-mono">{outputFormat}</span>
                         <div className="flex gap-1">
                           <div className="w-3 h-3 rounded-full bg-destructive/40"></div>
                           <div className="w-3 h-3 rounded-full bg-yellow-500/40"></div>
