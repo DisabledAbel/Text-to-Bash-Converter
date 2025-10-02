@@ -7,7 +7,7 @@ import { Copy, Trash2, Code2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import githubPreviewImage from "@/assets/github-preview.png";
 
-type OutputFormat = "bash" | "typescript" | "javascript" | "python";
+type OutputFormat = "bash" | "typescript" | "javascript" | "python" | "markdown";
 
 const TechConverter = () => {
   const [input, setInput] = useState("");
@@ -111,6 +111,7 @@ const TechConverter = () => {
                     <SelectItem value="typescript">TypeScript</SelectItem>
                     <SelectItem value="javascript">JavaScript</SelectItem>
                     <SelectItem value="python">Python</SelectItem>
+                    <SelectItem value="markdown">Markdown</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button
