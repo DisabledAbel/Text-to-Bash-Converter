@@ -1,9 +1,9 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Copy, Trash2, Code2, Palette } from "lucide-react";
+import { Copy, Trash2, Code2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import githubPreviewImage from "@/assets/github-preview.png";
 
@@ -13,19 +13,7 @@ const TechConverter = () => {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("bash");
-  const [selection, setSelection] = useState({ start: 0, end: 0 });
   const { toast } = useToast();
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-
-  const colors = [
-    { name: "Red", code: "\\033[31m", reset: "\\033[0m", class: "text-red-500" },
-    { name: "Green", code: "\\033[32m", reset: "\\033[0m", class: "text-green-500" },
-    { name: "Yellow", code: "\\033[33m", reset: "\\033[0m", class: "text-yellow-500" },
-    { name: "Blue", code: "\\033[34m", reset: "\\033[0m", class: "text-blue-500" },
-    { name: "Magenta", code: "\\033[35m", reset: "\\033[0m", class: "text-purple-500" },
-    { name: "Cyan", code: "\\033[36m", reset: "\\033[0m", class: "text-cyan-500" },
-    { name: "White", code: "\\033[37m", reset: "\\033[0m", class: "text-white" },
-  ];
 
   const convertToCodeBlock = (text: string, format: OutputFormat) => {
     if (!text.trim()) {
@@ -45,16 +33,6 @@ const TechConverter = () => {
     convertToCodeBlock(input, format);
   };
 
-  const handleSelectionChange = () => {
-    const textarea = inputRef.current;
-    if (textarea) {
-      setSelection({
-        start: textarea.selectionStart,
-        end: textarea.selectionEnd
-      });
-    }
-  };
-
   const copyToClipboard = async () => {
     if (!output) return;
     
@@ -71,41 +49,6 @@ const TechConverter = () => {
         variant: "destructive",
       });
     }
-  };
-
-  const addColorToText = (colorCode: string, resetCode: string) => {
-    const { start, end } = selection;
-    const selectedText = input.substring(start, end);
-
-    if (!selectedText || start === end) {
-      toast({
-        title: "No text selected",
-        description: "Please select text first, then click a color",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const coloredText = `${colorCode}${selectedText}${resetCode}`;
-    const newInput = input.substring(0, start) + coloredText + input.substring(end);
-    
-    setInput(newInput);
-    convertToCodeBlock(newInput, outputFormat);
-
-    // Restore focus and set cursor position after the colored text
-    setTimeout(() => {
-      const textarea = inputRef.current;
-      if (textarea) {
-        textarea.focus();
-        const newCursorPos = start + coloredText.length;
-        textarea.setSelectionRange(newCursorPos, newCursorPos);
-      }
-    }, 0);
-
-    toast({
-      title: "Color added!",
-      description: "Applied to selected text",
-    });
   };
 
   const clearAll = () => {
@@ -146,46 +89,12 @@ const TechConverter = () => {
               </Button>
             </div>
             <Textarea
-              ref={inputRef}
               placeholder="Enter your tech code, commands, or snippets here..."
               value={input}
               onChange={(e) => handleInputChange(e.target.value)}
-              onSelect={handleSelectionChange}
-              onMouseUp={handleSelectionChange}
-              onKeyUp={handleSelectionChange}
               className="min-h-[300px] font-mono text-sm bg-code-bg border-border resize-none focus:ring-primary"
               autoFocus
             />
-            
-            {/* Color Palette */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Palette className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium text-foreground">Text Coloring:</span>
-              </div>
-              <div className="bg-muted/50 p-3 rounded-md border border-dashed border-muted-foreground/30">
-                <p className="text-xs text-muted-foreground mb-2">
-                  💡 <strong>How to use:</strong> Highlight/select any text above, then click a color button
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {colors.map((color) => (
-                    <Button
-                      key={color.name}
-                      variant="outline"
-                      size="sm"
-                      onMouseDown={(e) => e.preventDefault()} // Prevent focus stealing
-                      onClick={() => addColorToText(color.code, color.reset)}
-                      className="text-xs px-3 hover:scale-105 transition-transform"
-                      title={`Add ${color.name.toLowerCase()} color to selected text`}
-                    >
-                      <span className={`${color.class} font-semibold`}>
-                        {color.name}
-                      </span>
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </div>
           </Card>
 
           {/* Output Section */}
