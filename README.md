@@ -110,6 +110,63 @@ node --version
 </a>
 ❤️💜🩷💙
 
+## 🖥️ CLI Tool
+
+A command-line interface is also available for converting code snippets directly from your terminal.
+
+### Setup
+
+```bash
+# Create a new directory
+mkdir tech-to-bash-cli
+cd tech-to-bash-cli
+
+# Initialize npm project
+npm init -y
+
+# Install dependencies
+npm install commander chalk
+
+# Add to package.json:
+{
+  "bin": {
+    "tech2bash": "./cli.js"
+  },
+  "type": "module"
+}
+
+# Link globally
+npm link
+```
+
+### CLI Usage
+
+```bash
+# Convert from stdin
+echo "npm install react" | tech2bash
+
+# Convert from file
+tech2bash -f input.txt
+
+# Specify output format
+echo "const x = 5" | tech2bash -o typescript
+
+# Copy to clipboard
+echo "npm install" | tech2bash -c
+
+# Save to file
+echo "npm install" | tech2bash -s output.md
+```
+
+### Available CLI Formats
+- `bash` (default)
+- `typescript`
+- `javascript`
+- `python`
+- `markdown`
+
+See [CLI_SETUP.md](./CLI_SETUP.md) for complete CLI code and detailed instructions.
+
 ## 🎨 Features in Detail
 
 ### Input Section
