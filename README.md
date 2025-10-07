@@ -1,7 +1,5 @@
 # Tech to Bash Converter
 
-[![Docker Hub](https://img.shields.io/docker/v/yourusername/tech-to-bash?label=Docker%20Hub&logo=docker)](https://hub.docker.com/r/yourusername/tech-to-bash)
-
 A beautiful, responsive web application that converts your tech code, commands, and snippets into properly formatted bash code blocks for GitHub, documentation, and other markdown platforms.
 
 ## ✨ Features
@@ -80,52 +78,6 @@ node --version
 sudo apt update
 sudo apt install nodejs npm
 node --version
-```
-
-## 🐳 Docker Development Setup
-
-Run the application locally using Docker:
-
-### Prerequisites
-- Docker and Docker Compose installed on your system
-
-### Pull from Docker Hub
-
-```bash
-# Pull the pre-built image
-docker pull yourusername/tech-to-bash:latest
-
-# Run the container
-docker run -p 5173:5173 yourusername/tech-to-bash:latest
-```
-
-### Build Locally
-
-```bash
-# Clone the repository
-git clone <your-repo-url>
-cd tech-to-bash-converter
-
-# Build and start the container
-docker-compose up
-
-# Or build without cache
-docker-compose build --no-cache && docker-compose up
-```
-
-The application will be available at `http://localhost:5173`
-
-### Docker Commands
-
-```bash
-# Stop the container
-docker-compose down
-
-# View logs
-docker-compose logs -f
-
-# Rebuild the container
-docker-compose up --build
 ```
 
 ## 🎯 Use Cases
