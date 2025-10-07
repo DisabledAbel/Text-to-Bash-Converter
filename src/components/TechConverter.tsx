@@ -20,7 +20,15 @@ const TechConverter = () => {
       setOutput("");
       return;
     }
-    setOutput("```" + format + "\n" + text + "\n```");
+    
+    // Split by newlines and filter out empty lines
+    const commands = text.split("\n").filter(line => line.trim());
+    
+    // Create separate code blocks for each command
+    const codeBlocks = commands.map(cmd => `\`\`\`${format}\n${cmd}\n\`\`\``);
+    
+    // Join with newlines between blocks
+    setOutput(codeBlocks.join("\n\n"));
   };
 
   const handleInputChange = (value: string) => {
