@@ -80,6 +80,42 @@ sudo apt install nodejs npm
 node --version
 ```
 
+## 🐳 Docker Development Setup
+
+Run the application locally using Docker:
+
+### Prerequisites
+- Docker and Docker Compose installed on your system
+
+### Quick Start
+
+```bash
+# Clone the repository
+git clone <your-repo-url>
+cd tech-to-bash-converter
+
+# Build and start the container
+docker-compose up
+
+# Or build without cache
+docker-compose build --no-cache && docker-compose up
+```
+
+The application will be available at `http://localhost:5173`
+
+### Docker Commands
+
+```bash
+# Stop the container
+docker-compose down
+
+# View logs
+docker-compose logs -f
+
+# Rebuild the container
+docker-compose up --build
+```
+
 ## 🎯 Use Cases
 
 - **Documentation**: Format commands for README files and technical documentation
