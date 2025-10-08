@@ -7,7 +7,27 @@ import { Copy, Trash2, Code2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import githubPreviewImage from "@/assets/github-preview.png";
 
-type OutputFormat = "bash" | "typescript" | "javascript" | "python" | "markdown";
+type OutputFormat = 
+  | "bash" 
+  | "typescript" 
+  | "javascript" 
+  | "python" 
+  | "markdown"
+  | "java"
+  | "go"
+  | "rust"
+  | "ruby"
+  | "php"
+  | "cpp"
+  | "csharp"
+  | "sql"
+  | "yaml"
+  | "json"
+  | "html"
+  | "css"
+  | "shell"
+  | "swift"
+  | "kotlin";
 
 const TechConverter = () => {
   const [input, setInput] = useState("");
@@ -119,7 +139,22 @@ const TechConverter = () => {
                     <SelectItem value="typescript">TypeScript</SelectItem>
                     <SelectItem value="javascript">JavaScript</SelectItem>
                     <SelectItem value="python">Python</SelectItem>
+                    <SelectItem value="java">Java</SelectItem>
+                    <SelectItem value="go">Go</SelectItem>
+                    <SelectItem value="rust">Rust</SelectItem>
+                    <SelectItem value="ruby">Ruby</SelectItem>
+                    <SelectItem value="php">PHP</SelectItem>
+                    <SelectItem value="cpp">C++</SelectItem>
+                    <SelectItem value="csharp">C#</SelectItem>
+                    <SelectItem value="swift">Swift</SelectItem>
+                    <SelectItem value="kotlin">Kotlin</SelectItem>
+                    <SelectItem value="sql">SQL</SelectItem>
+                    <SelectItem value="shell">Shell</SelectItem>
                     <SelectItem value="markdown">Markdown</SelectItem>
+                    <SelectItem value="yaml">YAML</SelectItem>
+                    <SelectItem value="json">JSON</SelectItem>
+                    <SelectItem value="html">HTML</SelectItem>
+                    <SelectItem value="css">CSS</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button
