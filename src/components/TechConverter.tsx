@@ -27,7 +27,9 @@ type OutputFormat =
   | "css"
   | "shell"
   | "swift"
-  | "kotlin";
+  | "kotlin"
+  | "dockerfile"
+  | "m3u";
 
 const TechConverter = () => {
   const [input, setInput] = useState("");
@@ -150,6 +152,8 @@ const TechConverter = () => {
                     <SelectItem value="kotlin">Kotlin</SelectItem>
                     <SelectItem value="sql">SQL</SelectItem>
                     <SelectItem value="shell">Shell</SelectItem>
+                    <SelectItem value="dockerfile">Dockerfile</SelectItem>
+                    <SelectItem value="m3u">M3U</SelectItem>
                     <SelectItem value="markdown">Markdown</SelectItem>
                     <SelectItem value="yaml">YAML</SelectItem>
                     <SelectItem value="json">JSON</SelectItem>
