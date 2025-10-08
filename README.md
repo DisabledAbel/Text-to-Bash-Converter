@@ -8,6 +8,40 @@ A beautiful, responsive web application that converts your tech code, commands, 
 - **GitHub Preview**: See exactly how your code blocks will appear on GitHub
 - **One-Click Copy**: Copy formatted code blocks to clipboard with a single click
 
+## 📦 Supported Code Block Formats
+
+The converter supports a wide range of programming languages and file formats:
+
+### Programming Languages
+- **Bash** - Shell scripting
+- **TypeScript** - Typed JavaScript
+- **JavaScript** - Web development
+- **Python** - General purpose programming
+- **Java** - Enterprise applications
+- **Go** - System programming
+- **Rust** - Systems programming
+- **Ruby** - Web development
+- **PHP** - Server-side scripting
+- **C++** - Systems programming
+- **C#** - .NET development
+- **Swift** - iOS/macOS development
+- **Kotlin** - Android development
+
+### Configuration & Data
+- **SQL** - Database queries
+- **YAML** - Configuration files
+- **JSON** - Data interchange
+- **Dockerfile** - Container definitions
+- **M3U** - Playlist files
+
+### Web Technologies
+- **HTML** - Web markup
+- **CSS** - Styling
+
+### Others
+- **Shell** - Shell commands
+- **Markdown** - Documentation
+
 ## 🛠️ Tech Stack
 
 - **Frontend**: React 18 + TypeScript
