@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Copy, Trash2, Code2, Download, BookTemplate } from "lucide-react";
+import { Copy, Trash2, Code2, Download, BookTemplate, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
 import githubPreviewImage from "@/assets/github-preview.png";
 
 type OutputFormat = 
@@ -84,7 +85,12 @@ const TechConverter = () => {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("bash");
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
+
+  const filteredTemplates = templates.filter(template =>
+    template.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const convertToCodeBlock = (text: string, format: OutputFormat) => {
     if (!text.trim()) {
@@ -187,9 +193,18 @@ const TechConverter = () => {
               <BookTemplate className="h-5 w-5 text-primary" />
               <h2 className="text-xl font-semibold">Templates & Presets</h2>
             </div>
+            <div className="relative w-48">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search templates..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-9 pl-8 text-sm"
+              />
+            </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2">
-            {templates.map((template) => (
+            {filteredTemplates.map((template) => (
               <Button
                 key={template.name}
                 variant="outline"
