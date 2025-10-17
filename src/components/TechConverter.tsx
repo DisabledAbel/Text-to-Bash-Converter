@@ -3,9 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Copy, Trash2, Code2, Download, BookTemplate, Search } from "lucide-react";
+import { Copy, Trash2, Code2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Input } from "@/components/ui/input";
 import githubPreviewImage from "@/assets/github-preview.png";
 
 type OutputFormat = 
@@ -32,70 +31,11 @@ type OutputFormat =
   | "dockerfile"
   | "m3u";
 
-interface Template {
-  name: string;
-  format: OutputFormat;
-  content: string;
-}
-
-const templates: Template[] = [
-  {
-    name: "Docker Setup",
-    format: "bash",
-    content: "docker build -t myapp .\ndocker run -p 3000:3000 myapp\ndocker ps"
-  },
-  {
-    name: "Git Workflow",
-    format: "bash",
-    content: "git add .\ngit commit -m \"Update features\"\ngit push origin main"
-  },
-  {
-    name: "NPM Commands",
-    format: "bash",
-    content: "npm install\nnpm run dev\nnpm run build"
-  },
-  {
-    name: "Python Virtual Env",
-    format: "python",
-    content: "python -m venv venv\nsource venv/bin/activate\npip install -r requirements.txt"
-  },
-  {
-    name: "TypeScript Config",
-    format: "json",
-    content: `{\n  "compilerOptions": {\n    "target": "ES2020",\n    "module": "ESNext",\n    "strict": true\n  }\n}`
-  },
-  {
-    name: "React Component",
-    format: "typescript",
-    content: `import React from 'react';\n\nconst MyComponent = () => {\n  return <div>Hello World</div>;\n};\n\nexport default MyComponent;`
-  },
-  {
-    name: "SQL Query",
-    format: "sql",
-    content: "SELECT * FROM users WHERE active = true;\nUPDATE users SET status = 'verified' WHERE id = 1;"
-  },
-  {
-    name: "Dockerfile",
-    format: "dockerfile",
-    content: "FROM node:18-alpine\nWORKDIR /app\nCOPY package*.json ./\nRUN npm install\nCOPY . .\nEXPOSE 3000\nCMD [\"npm\", \"start\"]"
-  }
-];
-
 const TechConverter = () => {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("bash");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [inputSearch, setInputSearch] = useState("");
   const { toast } = useToast();
-
-  const filteredTemplates = templates.filter(template =>
-    template.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const matchCount = inputSearch && input 
-    ? (input.toLowerCase().match(new RegExp(inputSearch.toLowerCase(), 'g')) || []).length 
-    : 0;
 
   const convertToCodeBlock = (text: string, format: OutputFormat) => {
     if (!text.trim()) {
@@ -146,35 +86,6 @@ const TechConverter = () => {
     setOutput("");
   };
 
-  const loadTemplate = (template: Template) => {
-    setInput(template.content);
-    setOutputFormat(template.format);
-    convertToCodeBlock(template.content, template.format);
-    toast({
-      title: "Template Loaded",
-      description: `Loaded: ${template.name}`,
-    });
-  };
-
-  const downloadOutput = () => {
-    if (!output) return;
-    
-    const blob = new Blob([output], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `code-block-${outputFormat}.md`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    toast({
-      title: "Downloaded!",
-      description: "Code block saved to your device",
-    });
-  };
-
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="mx-auto max-w-6xl space-y-8">
@@ -191,38 +102,6 @@ const TechConverter = () => {
           </p>
         </div>
 
-        {/* Templates Section */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <BookTemplate className="h-5 w-5 text-primary" />
-              <h2 className="text-xl font-semibold">Templates & Presets</h2>
-            </div>
-            <div className="relative w-48">
-              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search templates..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-9 pl-8 text-sm"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2">
-            {filteredTemplates.map((template) => (
-              <Button
-                key={template.name}
-                variant="outline"
-                size="sm"
-                onClick={() => loadTemplate(template)}
-                className="justify-start text-xs h-auto py-2 px-3"
-              >
-                {template.name}
-              </Button>
-            ))}
-          </div>
-        </Card>
-
         {/* Main Content */}
         <div className="grid xl:grid-cols-3 lg:grid-cols-2 gap-6">
           {/* Input Section */}
@@ -238,20 +117,6 @@ const TechConverter = () => {
                 <Trash2 className="h-4 w-4" />
                 Clear
               </Button>
-            </div>
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-              <Input
-                placeholder="Search in input..."
-                value={inputSearch}
-                onChange={(e) => setInputSearch(e.target.value)}
-                className="h-8 pl-8 text-xs"
-              />
-              {matchCount > 0 && (
-                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                  {matchCount} {matchCount === 1 ? 'match' : 'matches'}
-                </span>
-              )}
             </div>
             <Textarea
               placeholder="Enter your tech code, commands, or snippets here..."
@@ -296,15 +161,6 @@ const TechConverter = () => {
                     <SelectItem value="css">CSS</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={downloadOutput}
-                  disabled={!output}
-                >
-                  <Download className="h-4 w-4" />
-                  Download
-                </Button>
                 <Button
                   variant="copy"
                   size="sm"
