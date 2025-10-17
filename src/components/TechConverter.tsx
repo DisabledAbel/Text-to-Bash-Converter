@@ -168,13 +168,18 @@ const TechConverter = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <div className="flex items-center gap-2 px-2 pb-2 sticky top-0 bg-background">
+                    <div 
+                      className="flex items-center gap-2 px-2 pb-2 sticky top-0 bg-background"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Search className="h-4 w-4 text-muted-foreground" />
                       <Input
                         placeholder="Search formats..."
                         value={formatSearch}
                         onChange={(e) => setFormatSearch(e.target.value)}
                         className="h-8"
+                        onKeyDown={(e) => e.stopPropagation()}
                       />
                     </div>
                     {filteredFormats.map(format => (
