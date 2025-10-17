@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Copy, Trash2, Code2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Copy, Trash2, Code2, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import githubPreviewImage from "@/assets/github-preview.png";
 
@@ -35,7 +36,37 @@ const TechConverter = () => {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("bash");
+  const [formatSearch, setFormatSearch] = useState("");
   const { toast } = useToast();
+
+  const formats = [
+    { value: "bash", label: "Bash" },
+    { value: "typescript", label: "TypeScript" },
+    { value: "javascript", label: "JavaScript" },
+    { value: "python", label: "Python" },
+    { value: "java", label: "Java" },
+    { value: "go", label: "Go" },
+    { value: "rust", label: "Rust" },
+    { value: "ruby", label: "Ruby" },
+    { value: "php", label: "PHP" },
+    { value: "cpp", label: "C++" },
+    { value: "csharp", label: "C#" },
+    { value: "swift", label: "Swift" },
+    { value: "kotlin", label: "Kotlin" },
+    { value: "sql", label: "SQL" },
+    { value: "shell", label: "Shell" },
+    { value: "dockerfile", label: "Dockerfile" },
+    { value: "m3u", label: "M3U" },
+    { value: "markdown", label: "Markdown" },
+    { value: "yaml", label: "YAML" },
+    { value: "json", label: "JSON" },
+    { value: "html", label: "HTML" },
+    { value: "css", label: "CSS" },
+  ];
+
+  const filteredFormats = formats.filter(format =>
+    format.label.toLowerCase().includes(formatSearch.toLowerCase())
+  );
 
   const convertToCodeBlock = (text: string, format: OutputFormat) => {
     if (!text.trim()) {
@@ -137,28 +168,25 @@ const TechConverter = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="bash">Bash</SelectItem>
-                    <SelectItem value="typescript">TypeScript</SelectItem>
-                    <SelectItem value="javascript">JavaScript</SelectItem>
-                    <SelectItem value="python">Python</SelectItem>
-                    <SelectItem value="java">Java</SelectItem>
-                    <SelectItem value="go">Go</SelectItem>
-                    <SelectItem value="rust">Rust</SelectItem>
-                    <SelectItem value="ruby">Ruby</SelectItem>
-                    <SelectItem value="php">PHP</SelectItem>
-                    <SelectItem value="cpp">C++</SelectItem>
-                    <SelectItem value="csharp">C#</SelectItem>
-                    <SelectItem value="swift">Swift</SelectItem>
-                    <SelectItem value="kotlin">Kotlin</SelectItem>
-                    <SelectItem value="sql">SQL</SelectItem>
-                    <SelectItem value="shell">Shell</SelectItem>
-                    <SelectItem value="dockerfile">Dockerfile</SelectItem>
-                    <SelectItem value="m3u">M3U</SelectItem>
-                    <SelectItem value="markdown">Markdown</SelectItem>
-                    <SelectItem value="yaml">YAML</SelectItem>
-                    <SelectItem value="json">JSON</SelectItem>
-                    <SelectItem value="html">HTML</SelectItem>
-                    <SelectItem value="css">CSS</SelectItem>
+                    <div className="flex items-center gap-2 px-2 pb-2 sticky top-0 bg-background">
+                      <Search className="h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search formats..."
+                        value={formatSearch}
+                        onChange={(e) => setFormatSearch(e.target.value)}
+                        className="h-8"
+                      />
+                    </div>
+                    {filteredFormats.map(format => (
+                      <SelectItem key={format.value} value={format.value}>
+                        {format.label}
+                      </SelectItem>
+                    ))}
+                    {filteredFormats.length === 0 && (
+                      <div className="py-6 text-center text-sm text-muted-foreground">
+                        No formats found
+                      </div>
+                    )}
                   </SelectContent>
                 </Select>
                 <Button
