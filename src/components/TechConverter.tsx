@@ -86,11 +86,16 @@ const TechConverter = () => {
   const [output, setOutput] = useState("");
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("bash");
   const [searchQuery, setSearchQuery] = useState("");
+  const [inputSearch, setInputSearch] = useState("");
   const { toast } = useToast();
 
   const filteredTemplates = templates.filter(template =>
     template.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const matchCount = inputSearch && input 
+    ? (input.toLowerCase().match(new RegExp(inputSearch.toLowerCase(), 'g')) || []).length 
+    : 0;
 
   const convertToCodeBlock = (text: string, format: OutputFormat) => {
     if (!text.trim()) {
@@ -233,6 +238,20 @@ const TechConverter = () => {
                 <Trash2 className="h-4 w-4" />
                 Clear
               </Button>
+            </div>
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                placeholder="Search in input..."
+                value={inputSearch}
+                onChange={(e) => setInputSearch(e.target.value)}
+                className="h-8 pl-8 text-xs"
+              />
+              {matchCount > 0 && (
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                  {matchCount} {matchCount === 1 ? 'match' : 'matches'}
+                </span>
+              )}
             </div>
             <Textarea
               placeholder="Enter your tech code, commands, or snippets here..."
