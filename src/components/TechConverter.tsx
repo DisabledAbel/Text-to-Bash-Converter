@@ -30,7 +30,80 @@ type OutputFormat =
   | "swift"
   | "kotlin"
   | "dockerfile"
-  | "m3u";
+  | "m3u"
+  | "perl"
+  | "scala"
+  | "haskell"
+  | "elixir"
+  | "clojure"
+  | "groovy"
+  | "lua"
+  | "r"
+  | "julia"
+  | "dart"
+  | "vb"
+  | "fortran"
+  | "cobol"
+  | "assembly"
+  | "pascal"
+  | "scheme"
+  | "erlang"
+  | "fsharp"
+  | "ocaml"
+  | "solidity"
+  | "vyper"
+  | "toml"
+  | "ini"
+  | "xml"
+  | "graphql"
+  | "protobuf"
+  | "powershell"
+  | "batch"
+  | "zsh"
+  | "fish"
+  | "scss"
+  | "sass"
+  | "less"
+  | "stylus"
+  | "jsx"
+  | "tsx"
+  | "latex"
+  | "diff"
+  | "log"
+  | "properties"
+  | "nginx"
+  | "apache"
+  | "makefile"
+  | "cmake"
+  | "gradle"
+  | "vue"
+  | "svelte"
+  | "astro"
+  | "zig"
+  | "nim"
+  | "crystal"
+  | "reason"
+  | "purescript"
+  | "elm"
+  | "coffeescript"
+  | "livescript"
+  | "actionscript"
+  | "apex"
+  | "abap"
+  | "ada"
+  | "prolog"
+  | "tcl"
+  | "vhdl"
+  | "verilog"
+  | "matlab"
+  | "octave"
+  | "scilab"
+  | "maxima"
+  | "mathematica"
+  | "wolfram"
+  | "sas"
+  | "stata"
+  | "spss";
 
 const TechConverter = () => {
   const [input, setInput] = useState("");
@@ -62,6 +135,79 @@ const TechConverter = () => {
     { value: "json", label: "JSON" },
     { value: "html", label: "HTML" },
     { value: "css", label: "CSS" },
+    { value: "perl", label: "Perl" },
+    { value: "scala", label: "Scala" },
+    { value: "haskell", label: "Haskell" },
+    { value: "elixir", label: "Elixir" },
+    { value: "clojure", label: "Clojure" },
+    { value: "groovy", label: "Groovy" },
+    { value: "lua", label: "Lua" },
+    { value: "r", label: "R" },
+    { value: "julia", label: "Julia" },
+    { value: "dart", label: "Dart" },
+    { value: "vb", label: "Visual Basic" },
+    { value: "fortran", label: "Fortran" },
+    { value: "cobol", label: "COBOL" },
+    { value: "assembly", label: "Assembly" },
+    { value: "pascal", label: "Pascal" },
+    { value: "scheme", label: "Scheme" },
+    { value: "erlang", label: "Erlang" },
+    { value: "fsharp", label: "F#" },
+    { value: "ocaml", label: "OCaml" },
+    { value: "solidity", label: "Solidity" },
+    { value: "vyper", label: "Vyper" },
+    { value: "toml", label: "TOML" },
+    { value: "ini", label: "INI" },
+    { value: "xml", label: "XML" },
+    { value: "graphql", label: "GraphQL" },
+    { value: "protobuf", label: "Protobuf" },
+    { value: "powershell", label: "PowerShell" },
+    { value: "batch", label: "Batch" },
+    { value: "zsh", label: "Zsh" },
+    { value: "fish", label: "Fish" },
+    { value: "scss", label: "SCSS" },
+    { value: "sass", label: "Sass" },
+    { value: "less", label: "Less" },
+    { value: "stylus", label: "Stylus" },
+    { value: "jsx", label: "JSX" },
+    { value: "tsx", label: "TSX" },
+    { value: "latex", label: "LaTeX" },
+    { value: "diff", label: "Diff" },
+    { value: "log", label: "Log" },
+    { value: "properties", label: "Properties" },
+    { value: "nginx", label: "Nginx" },
+    { value: "apache", label: "Apache" },
+    { value: "makefile", label: "Makefile" },
+    { value: "cmake", label: "CMake" },
+    { value: "gradle", label: "Gradle" },
+    { value: "vue", label: "Vue" },
+    { value: "svelte", label: "Svelte" },
+    { value: "astro", label: "Astro" },
+    { value: "zig", label: "Zig" },
+    { value: "nim", label: "Nim" },
+    { value: "crystal", label: "Crystal" },
+    { value: "reason", label: "Reason" },
+    { value: "purescript", label: "PureScript" },
+    { value: "elm", label: "Elm" },
+    { value: "coffeescript", label: "CoffeeScript" },
+    { value: "livescript", label: "LiveScript" },
+    { value: "actionscript", label: "ActionScript" },
+    { value: "apex", label: "Apex" },
+    { value: "abap", label: "ABAP" },
+    { value: "ada", label: "Ada" },
+    { value: "prolog", label: "Prolog" },
+    { value: "tcl", label: "Tcl" },
+    { value: "vhdl", label: "VHDL" },
+    { value: "verilog", label: "Verilog" },
+    { value: "matlab", label: "MATLAB" },
+    { value: "octave", label: "Octave" },
+    { value: "scilab", label: "Scilab" },
+    { value: "maxima", label: "Maxima" },
+    { value: "mathematica", label: "Mathematica" },
+    { value: "wolfram", label: "Wolfram" },
+    { value: "sas", label: "SAS" },
+    { value: "stata", label: "Stata" },
+    { value: "spss", label: "SPSS" },
   ];
 
   const filteredFormats = formats.filter(format =>
