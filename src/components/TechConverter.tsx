@@ -313,9 +313,9 @@ const TechConverter = () => {
                   <SelectTrigger className="w-[140px] h-9">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-popover">
                     <div 
-                      className="flex items-center gap-2 px-2 pb-2 sticky top-0 bg-background"
+                      className="flex items-center gap-2 px-2 pb-2 sticky top-0 bg-popover z-10 border-b border-border"
                       onPointerDown={(e) => e.stopPropagation()}
                       onClick={(e) => e.stopPropagation()}
                     >
