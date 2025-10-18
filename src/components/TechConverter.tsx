@@ -325,7 +325,15 @@ const TechConverter = () => {
                         value={formatSearch}
                         onChange={(e) => setFormatSearch(e.target.value)}
                         className="h-8"
+                        autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="off"
+                        spellCheck="false"
                         onKeyDown={(e) => e.stopPropagation()}
+                        onFocus={(e) => e.stopPropagation()}
+                        onBlur={(e) => e.stopPropagation()}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onTouchStart={(e) => e.stopPropagation()}
                       />
                     </div>
                     {filteredFormats.map(format => (
