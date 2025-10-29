@@ -124,7 +124,14 @@ node --version
 
 ### Installation
 
-[![Open Application 🚀](https://img.shields.io/badge/Open%20Application-%F0%9F%9A%80-blue)](https://preview--tech-to-bash.lovable.app)
+<h1>Text to Bash Converter</h1>
+
+<a href="https://preview--tech-to-bash.lovable.app" 
+   style="display: inline-block; background-color: #1DA1F2; color: white; 
+          font-size: 22px; font-weight: bold; padding: 15px 30px; 
+          text-decoration: none; border-radius: 12px; transition: background 0.3s;">
+    🚀 Open Application
+</a>
 
 ❤️💜🩷💙
 
