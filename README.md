@@ -123,7 +123,7 @@ node --version
 - **Team Communication**: Share formatted commands in Slack, Discord, or other platforms
 
 ### Installation
-[![Open App](https://img.shields.io/badge/Open%20App-🚀-brightgreen?style=for-the-badge&logo=appveyor&logoColor=white)](https://preview--tech-to-bash.lovable.app)
+[![Open Application](https://img.shields.io/badge/Open%20Application-%F0%9F%9A%80-blue)](https://preview--tech-to-bash.lovable.app)
 
 ❤️💜🩷💙
 
