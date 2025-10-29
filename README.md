@@ -122,8 +122,6 @@ node --version
 - **Stack Overflow**: Format your questions and answers with proper syntax highlighting
 - **Team Communication**: Share formatted commands in Slack, Discord, or other platforms
 
-### Installation
-
 <h1>Text to Bash Converter</h1>
 
 <a href="https://preview--tech-to-bash.lovable.app" 
