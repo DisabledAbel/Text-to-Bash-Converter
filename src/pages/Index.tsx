@@ -1,6 +1,6 @@
 // Update this page (the content is just a fallback if you fail to update the page)
 
-import TextConverter from "../components/TechConverter";
+import TechConverter from "../components/TechConverter";
 
 const Index = () => {
   return <TechConverter />;
