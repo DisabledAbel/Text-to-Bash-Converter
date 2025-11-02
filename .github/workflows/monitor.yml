@@ -1,0 +1,34 @@
+name: Monitor Bash Repos
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"  # every 6 hours
+  workflow_dispatch:
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run Bash Repo Monitor
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python monitor_bash_repos.py
+
+      - name: Commit updated repo list
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add repos.json
+          git diff --quiet || git commit -m "Auto update repo list"
+          git push
