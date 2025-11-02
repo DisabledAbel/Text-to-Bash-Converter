@@ -1,0 +1,32 @@
+name: Auto Update & Close Issue on 👍
+
+on:
+  reaction:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  close_on_thumbsup:
+    runs-on: ubuntu-latest
+    if: >
+      github.event.reaction.content == '+1' &&
+      contains(github.event.issue.title, '📦 Bash Repository Updates')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Close issue on 👍
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          ISSUE_NUMBER=$(jq -r '.issue.number' <<< '${{ toJson(github.event) }}')
+          echo "Closing issue #$ISSUE_NUMBER"
+          curl -s -X PATCH \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -d '{"state":"closed"}' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}"
