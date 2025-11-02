@@ -1,32 +1,59 @@
-name: Auto Update & Close Issue on 👍
+name: Auto Bash Handler
 
 on:
-  reaction:
+  issue_comment:
     types: [created]
 
 permissions:
-  contents: write
   issues: write
+  contents: write
 
 jobs:
-  close_on_thumbsup:
+  handle_bash_request:
     runs-on: ubuntu-latest
-    if: >
-      github.event.reaction.content == '+1' &&
-      contains(github.event.issue.title, '📦 Bash Repository Updates')
+    if: github.event.issue.pull_request == null &&
+        github.event.comment.user.login == 'DisabledAbel'
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v4
 
-      - name: Close issue on 👍
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
+      - name: Detect emoji reaction
+        id: emoji
         run: |
-          ISSUE_NUMBER=$(jq -r '.issue.number' <<< '${{ toJson(github.event) }}')
-          echo "Closing issue #$ISSUE_NUMBER"
-          curl -s -X PATCH \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            -d '{"state":"closed"}' \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${ISSUE_NUMBER}"
+          body="${{ github.event.comment.body }}"
+          if echo "$body" | grep -q "👍"; then
+            echo "reaction=up" >> $GITHUB_OUTPUT
+          elif echo "$body" | grep -q "👎"; then
+            echo "reaction=down" >> $GITHUB_OUTPUT
+          else
+            echo "reaction=none" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Add Bash script (👍)
+        if: steps.emoji.outputs.reaction == 'up'
+        run: |
+          mkdir -p scripts
+          safe_title=$(echo "${{ github.event.issue.title }}" | tr ' ' '_' | tr -cd '[:alnum:]_')
+          file_name="scripts/${safe_title}.sh"
+          echo "${{ github.event.issue.body }}" > "$file_name"
+          echo "✅ Added $file_name"
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add scripts/
+          git diff --quiet || git commit -m "Auto-added bash from issue #${{ github.event.issue.number }}"
+          git push
+
+      - name: Close the issue (👍)
+        if: steps.emoji.outputs.reaction == 'up'
+        uses: peter-evans/close-issue@v3
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          comment: "✅ Bash script added and issue closed automatically."
+
+      - name: Reopen the issue (👎)
+        if: steps.emoji.outputs.reaction == 'down'
+        uses: peter-evans/open-issue@v3
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          comment: "🔄 Reopened for updates — please make necessary changes."
