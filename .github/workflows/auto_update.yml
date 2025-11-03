@@ -15,10 +15,10 @@ jobs:
         github.event.comment.user.login == 'DisabledAbel'
 
     steps:
-      - name: Check out repository
+      - name: 🧩 Check out repository
         uses: actions/checkout@v4
 
-      - name: Detect emoji reaction
+      - name: 🧠 Detect emoji reaction
         id: emoji
         run: |
           body="${{ github.event.comment.body }}"
@@ -30,7 +30,7 @@ jobs:
             echo "reaction=none" >> $GITHUB_OUTPUT
           fi
 
-      - name: Add Bash script (👍)
+      - name: 📝 Add Bash script (👍)
         if: steps.emoji.outputs.reaction == 'up'
         run: |
           mkdir -p scripts
@@ -38,22 +38,46 @@ jobs:
           file_name="scripts/${safe_title}.sh"
           echo "${{ github.event.issue.body }}" > "$file_name"
           echo "✅ Added $file_name"
+
+      - name: 📖 Update README (👍)
+        if: steps.emoji.outputs.reaction == 'up'
+        run: |
+          section="## 📜 Scripts Added Automatically"
+          scripts_list=$(find scripts -type f -name "*.sh" -printf "- [%f](scripts/%f)\n" | sort)
+
+          if [ ! -f README.md ]; then
+            echo "# Project Scripts" > README.md
+          fi
+
+          if ! grep -q "$section" README.md; then
+            echo -e "\n$section\n\n$scripts_list" >> README.md
+          else
+            awk -v s="$section" -v list="$scripts_list" '
+              BEGIN {found=0}
+              $0 ~ s {print $0; print ""; print list; found=1; next}
+              found && /^## / {found=0}
+              !found {print $0}
+            ' README.md > README.tmp && mv README.tmp README.md
+          fi
+
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add scripts/
-          git diff --quiet || git commit -m "Auto-added bash from issue #${{ github.event.issue.number }}"
+          git add scripts/ README.md
+          git diff --quiet || git commit -m "🪶 Auto-add bash and update README"
           git push
 
-      - name: Close the issue (👍)
+      - name: ✅ Auto-close issue (👍)
         if: steps.emoji.outputs.reaction == 'up'
         uses: peter-evans/close-issue@v3
         with:
           issue-number: ${{ github.event.issue.number }}
-          comment: "✅ Bash script added and issue closed automatically."
+          comment: |
+            ✅ Bash script has been added to the repo and README updated automatically.
+            This issue is now closed.
 
-      - name: Reopen the issue (👎)
+      - name: 🔄 Reopen issue (👎)
         if: steps.emoji.outputs.reaction == 'down'
         uses: peter-evans/open-issue@v3
         with:
           issue-number: ${{ github.event.issue.number }}
-          comment: "🔄 Reopened for updates — please make necessary changes."
+          comment: "🔁 Reopened for updates — please review or revise your Bash script."
