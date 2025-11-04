@@ -64,7 +64,10 @@ jobs:
           git config user.email "actions@github.com"
           git add scripts/ README.md
           git diff --quiet || git commit -m "🪶 Auto-add bash and update README"
-          git push
+
+          # ✅ fix: pull latest changes before pushing
+          git pull --rebase origin main || true
+          git push origin main --force-with-lease
 
       - name: ✅ Close issue (👍)
         if: steps.emoji.outputs.reaction == 'up'
