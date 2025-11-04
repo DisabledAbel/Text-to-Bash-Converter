@@ -1,98 +1,75 @@
-name: Auto Bash Handler
+name: Auto Update README Section and Close Issue
 
 on:
+  issues:
+    types: [opened, edited]
   issue_comment:
     types: [created]
 
 permissions:
-  issues: write
   contents: write
+  issues: write
 
 jobs:
-  handle_bash_request:
+  update:
     runs-on: ubuntu-latest
-    if: github.event.issue.pull_request == null &&
-        github.event.comment.user.login == 'DisabledAbel'
+    if: >
+      github.event.issue.pull_request == null &&
+      (github.event_name == 'issues' ||
+       github.event_name == 'issue_comment' &&
+       contains(github.event.comment.body, '👍'))
 
     steps:
-      - name: 🧩 Check out repository
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
-      - name: 🧠 Detect emoji reaction
-        id: emoji
+      - name: Configure Git
         run: |
-          body="${{ github.event.comment.body }}"
-          if echo "$body" | grep -q "👍"; then
-            echo "reaction=up" >> $GITHUB_OUTPUT
-          elif echo "$body" | grep -q "👎"; then
-            echo "reaction=down" >> $GITHUB_OUTPUT
-          else
-            echo "reaction=none" >> $GITHUB_OUTPUT
-          fi
-
-      - name: 📝 Add Bash script (👍)
-        if: steps.emoji.outputs.reaction == 'up'
-        run: |
-          mkdir -p scripts
-          safe_title=$(echo "${{ github.event.issue.title }}" | tr ' ' '_' | tr -cd '[:alnum:]_')
-          file_name="scripts/${safe_title}.sh"
-          echo "${{ github.event.issue.body }}" > "$file_name"
-          echo "✅ Added $file_name"
-
-      - name: 📖 Update README (👍)
-        if: steps.emoji.outputs.reaction == 'up'
-        run: |
-          section="## 📜 Scripts Added Automatically"
-          scripts_list=$(find scripts -type f -name "*.sh" -printf "- [%f](scripts/%f)\n" | sort)
-
-          if [ ! -f README.md ]; then
-            echo "# Project Scripts" > README.md
-          fi
-
-          if ! grep -q "$section" README.md; then
-            echo -e "\n$section\n\n$scripts_list" >> README.md
-          else
-            awk -v s="$section" -v list="$scripts_list" '
-              BEGIN {found=0}
-              $0 ~ s {print $0; print ""; print list; found=1; next}
-              found && /^## / {found=0}
-              !found {print $0}
-            ' README.md > README.tmp && mv README.tmp README.md
-          fi
-
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add scripts/ README.md
-          git diff --quiet || git commit -m "🪶 Auto-add bash and update README"
 
-          # ✅ fix: pull latest changes before pushing
+      - name: Pull latest changes
+        run: |
           git pull --rebase origin main || true
-          git push origin main --force-with-lease
 
-      - name: ✅ Close issue (👍)
-        if: steps.emoji.outputs.reaction == 'up'
-        id: close
+      - name: Update only Supported Code Block Formats section
+        run: |
+          awk '
+            BEGIN { in_section=0 }
+            /^📦 Supported Code Block Formats/ { print; print ""; print "- Bash"; print "- Python"; print "- JavaScript"; print "- JSON"; in_section=1; next }
+            /^#/ && in_section==1 && !/^📦 Supported Code Block Formats/ { in_section=0 }
+            in_section==0 { print }
+          ' README.md > README.tmp && mv README.tmp README.md
+
+      - name: Commit and Push Changes
+        run: |
+          git add README.md
+          git diff --quiet || git commit -m "Auto update Supported Code Block Formats section"
+          git push origin main
+
+      - name: Remove old GitHub Action comments
+        uses: peter-evans/delete-issue-comments@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.issue.number }}
+          comment-author: 'github-actions[bot]'
+
+      - name: Comment confirmation
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            ✅ The **📦 Supported Code Block Formats** section in README has been updated successfully.
+            All previous Action comments have been cleaned up.
+
+      - name: Close issue if 👍 reaction added
+        if: >
+          github.event_name == 'issue_comment' &&
+          contains(github.event.comment.body, '👍')
         uses: peter-evans/close-issue@v3
         with:
-          issue-number: ${{ github.event.issue.number }}
-          comment: "✅ Bash script added, README updated, and issue closed automatically."
-
-      - name: 🧹 Delete bot comment (👍)
-        if: steps.emoji.outputs.reaction == 'up'
-        uses: peter-evans/delete-comment@v3
-        with:
-          comment-id: ${{ steps.close.outputs.comment-id }}
-
-      - name: 🔄 Reopen issue (👎)
-        if: steps.emoji.outputs.reaction == 'down'
-        id: reopen
-        uses: peter-evans/open-issue@v3
-        with:
-          issue-number: ${{ github.event.issue.number }}
-          comment: "🔁 Reopened for updates — please revise your Bash script."
-
-      - name: 🧹 Delete bot comment (👎)
-        if: steps.emoji.outputs.reaction == 'down'
-        uses: peter-evans/delete-comment@v3
-        with:
-          comment-id: ${{ steps.reopen.outputs.comment-id }}
+          token: ${{ secrets.GITHUB_TOKEN }}
