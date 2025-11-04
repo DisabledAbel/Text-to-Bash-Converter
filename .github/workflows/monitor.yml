@@ -1,4 +1,4 @@
-name: Auto Update and Close Issue
+name: Auto Update README From Issue/Comment
 
 on:
   issues:
@@ -11,13 +11,9 @@ permissions:
   issues: write
 
 jobs:
-  update:
+  update-readme:
     runs-on: ubuntu-latest
-    if: >
-      github.event.issue.pull_request == null &&
-      (github.event_name == 'issues' ||
-       github.event_name == 'issue_comment' &&
-       contains(github.event.comment.body, '👍'))
+    if: github.event.issue.pull_request == null
 
     steps:
       - name: Checkout repository
@@ -36,17 +32,45 @@ jobs:
           git fetch origin main
           git rebase origin/main || true
 
-      - name: Update file(s)
+      - name: Extract formats from issue/comment
+        id: formats
         run: |
-          # Example: update repos.json automatically
-          echo "{}" > repos.json
-          # or use your custom Python/script step here
+          # Read from comment if exists, else issue body
+          if [ "${{ github.event_name }}" == "issue_comment" ]; then
+            content="${{ github.event.comment.body }}"
+          else
+            content="${{ github.event.issue.body }}"
+          fi
+
+          # Extract lines starting with "-" or ignore empty lines
+          formats=$(echo "$content" | sed '/^\s*$/d' | sed 's/^/- /')
+          echo "formats<<EOF" >> $GITHUB_OUTPUT
+          echo "$formats" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Update README section
+        run: |
+          awk -v list="${{ steps.formats.outputs.formats }}" '
+            BEGIN { in_section=0 }
+            /^📦 Supported Code Block Formats/ {
+              print; print ""; 
+              print list;
+              in_section=1; 
+              next
+            }
+            /^## / && in_section==1 { in_section=0 }
+            in_section==0 { print }
+          ' README.md > README.tmp && mv README.tmp README.md
 
       - name: Commit and push safely
         run: |
-          git add .
-          git diff --quiet || git commit -m "Auto update repo list"
-          git push --force-with-lease origin HEAD:main
+          git add README.md
+          if git diff --cached --quiet; then
+            echo "✅ No changes to commit."
+          else
+            git commit -m "Auto update Supported Code Block Formats from issue/comment"
+            git push --force-with-lease origin HEAD:main
+          fi
 
       - name: Remove previous bot comments
         uses: peter-evans/delete-issue-comments@v3
@@ -61,8 +85,8 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.issue.number }}
           body: |
-            ✅ Auto update completed successfully.
-            Repository is synced with latest remote commits.
+            ✅ The **📦 Supported Code Block Formats** section in README has been updated dynamically from this issue/comment.
+            Previous bot comments have been removed.
 
       - name: Close issue on 👍 reaction
         if: >
