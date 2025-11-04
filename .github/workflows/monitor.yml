@@ -1,34 +1,95 @@
-name: Monitor Bash Repos
+name: Auto Bash Handler
 
 on:
-  schedule:
-    - cron: "0 */6 * * *"  # every 6 hours
-  workflow_dispatch:
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+  contents: write
 
 jobs:
-  monitor:
+  handle_bash_request:
     runs-on: ubuntu-latest
+    if: github.event.issue.pull_request == null &&
+        github.event.comment.user.login == 'DisabledAbel'
+
     steps:
-      - uses: actions/checkout@v4
+      - name: 🧩 Check out repository
+        uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: 3.11
-
-      - name: Install dependencies
-        run: pip install requests
-
-      - name: Run Bash Repo Monitor
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-        run: python monitor_bash_repos.py
-
-      - name: Commit updated repo list
+      - name: 🧠 Detect emoji reaction
+        id: emoji
         run: |
+          body="${{ github.event.comment.body }}"
+          if echo "$body" | grep -q "👍"; then
+            echo "reaction=up" >> $GITHUB_OUTPUT
+          elif echo "$body" | grep -q "👎"; then
+            echo "reaction=down" >> $GITHUB_OUTPUT
+          else
+            echo "reaction=none" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 📝 Add Bash script (👍)
+        if: steps.emoji.outputs.reaction == 'up'
+        run: |
+          mkdir -p scripts
+          safe_title=$(echo "${{ github.event.issue.title }}" | tr ' ' '_' | tr -cd '[:alnum:]_')
+          file_name="scripts/${safe_title}.sh"
+          echo "${{ github.event.issue.body }}" > "$file_name"
+          echo "✅ Added $file_name"
+
+      - name: 📖 Update README (👍)
+        if: steps.emoji.outputs.reaction == 'up'
+        run: |
+          section="## 📜 Scripts Added Automatically"
+          scripts_list=$(find scripts -type f -name "*.sh" -printf "- [%f](scripts/%f)\n" | sort)
+
+          if [ ! -f README.md ]; then
+            echo "# Project Scripts" > README.md
+          fi
+
+          if ! grep -q "$section" README.md; then
+            echo -e "\n$section\n\n$scripts_list" >> README.md
+          else
+            awk -v s="$section" -v list="$scripts_list" '
+              BEGIN {found=0}
+              $0 ~ s {print $0; print ""; print list; found=1; next}
+              found && /^## / {found=0}
+              !found {print $0}
+            ' README.md > README.tmp && mv README.tmp README.md
+          fi
+
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add repos.json
-          git diff --quiet || git commit -m "Auto update repo list"
+          git add scripts/ README.md
+          git diff --quiet || git commit -m "🪶 Auto-add bash and update README"
           git push
+
+      - name: ✅ Close issue (👍)
+        if: steps.emoji.outputs.reaction == 'up'
+        id: close
+        uses: peter-evans/close-issue@v3
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          comment: "✅ Bash script added, README updated, and issue closed automatically."
+
+      - name: 🧹 Delete bot comment (👍)
+        if: steps.emoji.outputs.reaction == 'up'
+        uses: peter-evans/delete-comment@v3
+        with:
+          comment-id: ${{ steps.close.outputs.comment-id }}
+
+      - name: 🔄 Reopen issue (👎)
+        if: steps.emoji.outputs.reaction == 'down'
+        id: reopen
+        uses: peter-evans/open-issue@v3
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          comment: "🔁 Reopened for updates — please revise your Bash script."
+
+      - name: 🧹 Delete bot comment (👎)
+        if: steps.emoji.outputs.reaction == 'down'
+        uses: peter-evans/delete-comment@v3
+        with:
+          comment-id: ${{ steps.reopen.outputs.comment-id }}
