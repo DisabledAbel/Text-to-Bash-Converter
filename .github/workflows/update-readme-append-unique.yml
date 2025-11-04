@@ -1,4 +1,4 @@
-name: Auto Append Unique README Formats
+name: Auto Append Unique README Formats with Preview
 
 on:
   workflow_dispatch:
@@ -19,21 +19,20 @@ permissions:
 jobs:
   update-readme:
     runs-on: ubuntu-latest
-    if: github.event.issue.pull_request == null || github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure Git
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
-      - name: Pull and rebase latest main
+      - name: Pull latest main
         run: |
           git fetch origin main
           git rebase origin/main || true
@@ -49,25 +48,21 @@ jobs:
             content="${{ github.event.issue.body }}"
           fi
 
-          # Normalize lines: remove empty lines, strip leading/trailing spaces, remove leading "-"
           new_formats=$(echo "$content" | sed '/^\s*$/d' | sed 's/^\s*-?\s*//')
-          # Convert to markdown list
           new_formats=$(echo "$new_formats" | sed 's/^/- /')
           echo "new_formats<<EOF" >> $GITHUB_OUTPUT
           echo "$new_formats" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Append unique formats to README
+      - name: Merge unique formats
+        id: merge
         run: |
-          # Extract existing formats
           section_start=$(grep -n "^📦 Supported Code Block Formats" README.md | cut -d: -f1)
           if [ -z "$section_start" ]; then
-            # Section missing: create it at the end
             echo -e "\n📦 Supported Code Block Formats\n" >> README.md
             section_start=$(wc -l < README.md)
           fi
 
-          # Find end of section
           section_end=$(tail -n +$section_start README.md | grep -n "^## " | head -n1 | cut -d: -f1)
           if [ -z "$section_end" ]; then
             section_end=$(wc -l < README.md)
@@ -75,26 +70,30 @@ jobs:
             section_end=$((section_start + section_end - 2))
           fi
 
-          # Extract current list
           current_list=$(sed -n "$((section_start+1)),$section_end p" README.md | sed 's/^- //')
-          # Extract new formats
           new_list=$(echo "${{ steps.formats.outputs.new_formats }}" | sed 's/^- //')
 
-          # Merge and remove duplicates
           merged=$(echo -e "$current_list\n$new_list" | awk '!seen[$0]++')
-
-          # Build markdown list
           final_list=$(echo "$merged" | sed 's/^/- /')
+          echo "final_list<<EOF" >> $GITHUB_OUTPUT
+          echo "$final_list" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
-          # Replace section in README
+      - name: Preview merged list (issues only)
+        if: github.event_name != 'workflow_dispatch'
+        run: |
+          gh issue comment ${{ github.event.issue.number }} --body "📝 **Preview of Supported Code Block Formats after append:**\n\n${{ steps.merge.outputs.final_list }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit and push
+        run: |
           head -n $section_start README.md > README.tmp
           echo "" >> README.tmp
-          echo "$final_list" >> README.tmp
+          echo "${{ steps.merge.outputs.final_list }}" >> README.tmp
           tail -n +$((section_end+1)) README.md >> README.tmp
           mv README.tmp README.md
 
-      - name: Commit and push safely
-        run: |
           git add README.md
           if git diff --cached --quiet; then
             echo "✅ No changes to commit."
@@ -105,24 +104,28 @@ jobs:
 
       - name: Remove previous bot comments (issues only)
         if: github.event_name != 'workflow_dispatch'
-        uses: peter-evans/delete-issue-comments@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          issue-number: ${{ github.event.issue.number }}
-          comment-author: 'github-actions[bot]'
+        run: |
+          comment_ids=$(gh api \
+            -X GET \
+            -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments \
+            | jq -r '.[] | select(.user.login=="github-actions[bot]") | .id')
+          for id in $comment_ids; do
+            gh api -X DELETE /repos/${{ github.repository }}/issues/comments/$id
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Comment success (issues only)
+      - name: Comment success
         if: github.event_name != 'workflow_dispatch'
-        uses: peter-evans/create-or-update-comment@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          issue-number: ${{ github.event.issue.number }}
-          body: |
-            ✅ New unique formats have been **appended** to the 📦 Supported Code Block Formats section.
-            Previous bot comments have been removed.
+        run: |
+          gh issue comment ${{ github.event.issue.number }} --body "✅ New unique formats appended. Preview was posted earlier."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Close issue on 👍 reaction
         if: github.event_name == 'issue_comment' && contains(github.event.comment.body, '👍')
-        uses: peter-evans/close-issue@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue close ${{ github.event.issue.number }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
