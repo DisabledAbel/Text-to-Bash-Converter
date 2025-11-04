@@ -118,7 +118,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.issue.number }}
           body: |
-            ✅ New unique formats have been appended to the 📦 Supported Code Block Formats section.
+            ✅ New unique formats have been **appended** to the 📦 Supported Code Block Formats section.
             Previous bot comments have been removed.
 
       - name: Close issue on 👍 reaction
