@@ -1,4 +1,4 @@
-name: Auto Update README Section and Close Issue
+name: Auto Update and Close Issue
 
 on:
   issues:
@@ -31,42 +31,40 @@ jobs:
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
-      - name: Pull latest changes
+      - name: Pull and rebase latest main
         run: |
-          git pull --rebase origin main || true
+          git fetch origin main
+          git rebase origin/main || true
 
-      - name: Update only Supported Code Block Formats section
+      - name: Update file(s)
         run: |
-          awk '
-            BEGIN { in_section=0 }
-            /^📦 Supported Code Block Formats/ { print; print ""; print "- Bash"; print "- Python"; print "- JavaScript"; print "- JSON"; in_section=1; next }
-            /^#/ && in_section==1 && !/^📦 Supported Code Block Formats/ { in_section=0 }
-            in_section==0 { print }
-          ' README.md > README.tmp && mv README.tmp README.md
+          # Example: update repos.json automatically
+          echo "{}" > repos.json
+          # or use your custom Python/script step here
 
-      - name: Commit and Push Changes
+      - name: Commit and push safely
         run: |
-          git add README.md
-          git diff --quiet || git commit -m "Auto update Supported Code Block Formats section"
-          git push origin main
+          git add .
+          git diff --quiet || git commit -m "Auto update repo list"
+          git push --force-with-lease origin HEAD:main
 
-      - name: Remove old GitHub Action comments
+      - name: Remove previous bot comments
         uses: peter-evans/delete-issue-comments@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.issue.number }}
           comment-author: 'github-actions[bot]'
 
-      - name: Comment confirmation
+      - name: Comment success
         uses: peter-evans/create-or-update-comment@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.issue.number }}
           body: |
-            ✅ The **📦 Supported Code Block Formats** section in README has been updated successfully.
-            All previous Action comments have been cleaned up.
+            ✅ Auto update completed successfully.
+            Repository is synced with latest remote commits.
 
-      - name: Close issue if 👍 reaction added
+      - name: Close issue on 👍 reaction
         if: >
           github.event_name == 'issue_comment' &&
           contains(github.event.comment.body, '👍')
