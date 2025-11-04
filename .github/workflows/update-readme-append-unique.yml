@@ -1,4 +1,4 @@
-name: Auto Append Unique README Formats with Preview
+name: Auto Append Unique README Formats (Idempotent + Manual Approval)
 
 on:
   workflow_dispatch:
@@ -54,7 +54,7 @@ jobs:
           echo "$new_formats" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Merge unique formats
+      - name: Merge unique formats (idempotent)
         id: merge
         run: |
           section_start=$(grep -n "^📦 Supported Code Block Formats" README.md | cut -d: -f1)
@@ -70,11 +70,20 @@ jobs:
             section_end=$((section_start + section_end - 2))
           fi
 
+          section_start=${section_start:-0}
+          section_end=${section_end:-$(wc -l < README.md)}
+
+          # Extract current list
           current_list=$(sed -n "$((section_start+1)),$section_end p" README.md | sed 's/^- //')
+
+          # Extract new formats
           new_list=$(echo "${{ steps.formats.outputs.new_formats }}" | sed 's/^- //')
 
+          # Merge and remove duplicates (idempotent)
           merged=$(echo -e "$current_list\n$new_list" | awk '!seen[$0]++')
           final_list=$(echo "$merged" | sed 's/^/- /')
+
+          # Save for workflow
           echo "final_list<<EOF" >> $GITHUB_OUTPUT
           echo "$final_list" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -82,12 +91,32 @@ jobs:
       - name: Preview merged list (issues only)
         if: github.event_name != 'workflow_dispatch'
         run: |
-          gh issue comment ${{ github.event.issue.number }} --body "📝 **Preview of Supported Code Block Formats after append:**\n\n${{ steps.merge.outputs.final_list }}"
+          PREVIEW_COMMENT_ID=$(gh issue comment ${{ github.event.issue.number }} --body "📝 **Preview of Supported Code Block Formats after append:**\n\n${{ steps.merge.outputs.final_list }}\n\n_Reply with `✅ approve` to commit these changes._" --json id -q ".id")
+          echo "preview_comment_id=$PREVIEW_COMMENT_ID" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Commit and push
+      - name: Wait for approval
+        if: github.event_name == 'issue_comment'
         run: |
+          if [[ "${{ github.event.comment.body }}" != "✅ approve" ]]; then
+            echo "❌ Approval not given, skipping commit."
+            exit 0
+          fi
+
+      - name: Commit and push approved changes (idempotent)
+        if: github.event_name == 'issue_comment' && github.event.comment.body == '✅ approve'
+        run: |
+          section_start=$(grep -n "^📦 Supported Code Block Formats" README.md | cut -d: -f1)
+          if [ -z "$section_start" ]; then section_start=0; fi
+          section_end=$(tail -n +$section_start README.md | grep -n "^## " | head -n1 | cut -d: -f1)
+          if [ -z "$section_end" ]; then section_end=$(wc -l < README.md); else section_end=$((section_start + section_end - 2)); fi
+
+          # Safety defaults
+          section_start=${section_start:-0}
+          section_end=${section_end:-$(wc -l < README.md)}
+
+          # Rebuild README section with idempotent merged list
           head -n $section_start README.md > README.tmp
           echo "" >> README.tmp
           echo "${{ steps.merge.outputs.final_list }}" >> README.tmp
@@ -102,7 +131,7 @@ jobs:
             git push --force-with-lease origin HEAD:main
           fi
 
-      - name: Remove previous bot comments (issues only)
+      - name: Remove previous bot comments
         if: github.event_name != 'workflow_dispatch'
         run: |
           comment_ids=$(gh api \
@@ -119,7 +148,7 @@ jobs:
       - name: Comment success
         if: github.event_name != 'workflow_dispatch'
         run: |
-          gh issue comment ${{ github.event.issue.number }} --body "✅ New unique formats appended. Preview was posted earlier."
+          gh issue comment ${{ github.event.issue.number }} --body "✅ Changes committed after approval. Preview comment removed."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
