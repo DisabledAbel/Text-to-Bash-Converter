@@ -1,6 +1,6 @@
 // src/pages/Index.tsx
 import React, { Suspense, Component, ReactNode } from "react";
-import TextConverter from "../components/TextConverter";
+import TechConverter from "../components/TechConverter";
 
 // Error boundary to catch any errors in child components
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
@@ -29,8 +29,8 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
 const Index = () => {
   return (
     <ErrorBoundary>
-      <Suspense fallback={<div>Loading Text Converter...</div>}>
-        <TextConverter />
+      <Suspense fallback={<div>Loading Tech Converter...</div>}>
+        <TechConverter />
       </Suspense>
     </ErrorBoundary>
   );
