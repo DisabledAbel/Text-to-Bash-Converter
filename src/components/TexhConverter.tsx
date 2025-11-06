@@ -105,7 +105,7 @@ type OutputFormat =
   | "stata"
   | "spss";
 
-const TechConverter = () => {
+const TexhConverter = () => {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("bash");
@@ -271,11 +271,11 @@ const TechConverter = () => {
           <div className="flex items-center justify-center gap-3">
             <Code2 className="h-8 w-8 text-primary" />
             <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Tech to Bash Converter
+              Texh to Bash Converter
             </h1>
           </div>
           <p className="text-muted-foreground text-lg">
-            Convert your tech input into properly formatted bash code blocks
+            Convert your texh input into properly formatted bash code blocks
           </p>
         </div>
 
@@ -296,7 +296,7 @@ const TechConverter = () => {
               </Button>
             </div>
             <Textarea
-              placeholder="Enter your tech code, commands, or snippets here..."
+              placeholder="Enter your texh code, commands, or snippets here..."
               value={input}
               onChange={(e) => handleInputChange(e.target.value)}
               className="min-h-[300px] font-mono text-sm bg-code-bg border-border resize-none focus:ring-primary"
@@ -439,4 +439,4 @@ const TechConverter = () => {
   );
 };
 
-export default TechConverter;
+export default TexhConverter;
