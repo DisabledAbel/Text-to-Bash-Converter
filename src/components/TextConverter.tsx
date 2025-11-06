@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Copy, Trash2, Code2, Search } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Copy, Trash2, Code2, Check, ChevronsUpDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import githubPreviewImage from "@/assets/github-preview.png";
 
 type OutputFormat = 
@@ -109,7 +110,7 @@ const TextConverter = () => {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("bash");
-  const [formatSearch, setFormatSearch] = useState("");
+  const [open, setOpen] = useState(false);
   const { toast } = useToast();
 
   const formats = [
@@ -210,9 +211,6 @@ const TextConverter = () => {
     { value: "spss", label: "SPSS" },
   ];
 
-  const filteredFormats = formats.filter(format =>
-    format.label.toLowerCase().includes(formatSearch.toLowerCase())
-  );
 
   const convertToCodeBlock = (text: string, format: OutputFormat) => {
     if (!text.trim()) {
@@ -309,42 +307,47 @@ const TextConverter = () => {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Output</h2>
               <div className="flex items-center gap-2">
-                <Select value={outputFormat} onValueChange={handleFormatChange}>
-                  <SelectTrigger className="w-[140px] h-9">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover">
-                    <div 
-                      className="flex items-center gap-2 px-2 pb-2 sticky top-0 bg-popover z-10 border-b border-border"
-                      onPointerDown={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
+                <Popover open={open} onOpenChange={setOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={open}
+                      className="w-[140px] h-9 justify-between"
                     >
-                      <Search className="h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Search formats..."
-                        value={formatSearch}
-                        onChange={(e) => setFormatSearch(e.target.value)}
-                        className="h-8"
-                        autoComplete="off"
-                        onKeyDown={(e) => {
-                          e.stopPropagation();
-                        }}
-                      />
-                    </div>
-                    {filteredFormats.map(format => (
-                      <SelectItem key={format.value} value={format.value}>
-                        {format.label}
-                      </SelectItem>
-                    ))}
-                    {filteredFormats.length === 0 && (
-                      <div className="py-6 text-center text-sm text-muted-foreground">
-                        No formats found
-                      </div>
-                    )}
-                  </SelectContent>
-                </Select>
+                      {formats.find((format) => format.value === outputFormat)?.label}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[200px] p-0">
+                    <Command>
+                      <CommandInput placeholder="Search formats..." />
+                      <CommandList>
+                        <CommandEmpty>No format found.</CommandEmpty>
+                        <CommandGroup>
+                          {formats.map((format) => (
+                            <CommandItem
+                              key={format.value}
+                              value={format.label}
+                              onSelect={() => {
+                                handleFormatChange(format.value as OutputFormat);
+                                setOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  outputFormat === format.value ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {format.label}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <Button
                   variant="copy"
                   size="sm"
