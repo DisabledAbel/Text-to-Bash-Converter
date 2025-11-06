@@ -314,7 +314,13 @@ const TextConverter = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-popover">
-                    <div className="flex items-center gap-2 px-2 pb-2 sticky top-0 bg-popover z-10 border-b border-border">
+                    <div 
+                      className="flex items-center gap-2 px-2 pb-2 sticky top-0 bg-popover z-10 border-b border-border"
+                      onPointerDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                    >
                       <Search className="h-4 w-4 text-muted-foreground" />
                       <Input
                         placeholder="Search formats..."
@@ -322,6 +328,9 @@ const TextConverter = () => {
                         onChange={(e) => setFormatSearch(e.target.value)}
                         className="h-8"
                         autoComplete="off"
+                        onKeyDown={(e) => {
+                          e.stopPropagation();
+                        }}
                       />
                     </div>
                     {filteredFormats.map(format => (
