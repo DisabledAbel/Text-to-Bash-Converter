@@ -3,7 +3,6 @@ name: Fetch Bash Scripts by Repo Topics (PR Approval)
 on:
   workflow_dispatch:
   schedule:
-    # Runs every 10 minutes
     - cron: '*/10 * * * *'
 
 jobs:
@@ -17,20 +16,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install jq and GitHub CLI
+      - name: Install dependencies
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y jq gh
+          sudo apt-get install -y jq gh git
 
-      - name: Fetch Bash scripts by repo topics
+      - name: Fetch topics and collect Bash scripts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
+          set -euo pipefail
+
           echo "Fetching topics for $REPO ..."
           topics_json=$(curl -s -H "Accept: application/vnd.github+json" \
             -H "Authorization: token $GITHUB_TOKEN" \
             "https://api.github.com/repos/$REPO/topics")
+
+          # If there are no topics, exit early
+          topics_count=$(echo "$topics_json" | jq -r '.names | length')
+          if [ "$topics_count" -eq 0 ]; then
+            echo "No topics found for $REPO. Exiting."
+            exit 0
+          fi
 
           topics=($(echo "$topics_json" | jq -r '.names[]'))
           echo "Found topics: ${topics[*]}"
@@ -39,13 +47,13 @@ jobs:
           any_changes=false
 
           for topic in "${topics[@]}"; do
-            echo "🔍 Searching Bash repos with topic: $topic"
-            search_url="https://api.github.com/search/repositories?q=topic:$topic+language:bash&sort=stars&order=desc"
+            echo "Searching Bash repos with topic: $topic"
+            search_url="https://api.github.com/search/repositories?q=topic:${topic}+language:bash&sort=stars&order=desc"
             repos=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$search_url" | jq -r '.items[:5][] | .clone_url')
 
             for repo in $repos; do
-              echo "⤵️ Cloning $repo"
-              git clone --depth 1 "$repo" temp_repo
+              echo "Cloning $repo"
+              git clone --depth 1 "$repo" temp_repo || { echo "clone failed: $repo"; continue; }
 
               for file in temp_repo/*.sh; do
                 [ -f "$file" ] || continue
@@ -60,34 +68,44 @@ jobs:
             done
           done
 
-          if [ "$any_changes" = true ]; then
-            echo "✅ New scripts found, preparing pull request..."
-            branch="auto-bash-update-$(date +%s)"
-            git config user.name "github-actions"
-            git config user.email "github-actions@github.com"
-            git checkout -b "$branch"
-            git add scripts/
-            git commit -m "Auto fetch new Bash scripts by repo topics"
-            git push origin "$branch"
+          # Export flag for subsequent steps
+          echo "ANY_CHANGES=$any_changes" >> $GITHUB_ENV
 
-            # Check if a similar PR already exists
-            existing_pr=$(gh pr list --state open --json headRefName -q '.[] | select(.headRefName=="'$branch'") | .headRefName')
-            if [ -z "$existing_pr" ]; then
-              pr_body="Hey @DisabledAbel 👋
+      - name: Create Pull Request (if changes)
+        if: env.ANY_CHANGES == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
 
-This PR adds new Bash scripts fetched from repositories that share the same topics as **${REPO}**.
+          branch="auto-bash-update-$(date +%s)"
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git checkout -b "$branch"
+          git add scripts/
+          git commit -m "Auto fetch new Bash scripts by repo topics" || { echo "Nothing to commit."; exit 0; }
+          git push origin "$branch"
+
+          # Check for existing PRs with this head
+          existing_pr=$(gh pr list --state open --head "$branch" --json number --jq '.[0].number' || true)
+
+          if [ -z "$existing_pr" ]; then
+            pr_body=$(cat <<'EOF'
+Hey @DisabledAbel 👋
+
+This PR adds new Bash scripts fetched from repositories that share the same topics as the repository.
 Please review and approve before merging.
 
-*(Generated automatically by GitHub Actions)*"
-
-              gh pr create \
-                --title "Auto fetch new Bash scripts" \
-                --body "$pr_body" \
-                --base main \
-                --head "$branch"
-            else
-              echo "⚪ Skipping PR creation — one already exists for branch $branch."
-            fi
+*(Generated automatically by GitHub Actions)*
+EOF
+)
+            gh pr create --title "Auto fetch new Bash scripts" --body "$pr_body" --base main --head "$branch"
+            echo "PR created for branch $branch"
           else
-            echo "⚪ No new scripts found. No pull request created."
+            echo "A PR already exists for branch $branch (PR #$existing_pr). Skipping PR creation."
           fi
+
+      - name: No new scripts
+        if: env.ANY_CHANGES != 'true'
+        run: echo "No new scripts found. No PR created."
