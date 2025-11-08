@@ -18,37 +18,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Install dependencies
+      # 2️⃣ Install required tools
       - name: Install jq and GitHub CLI
         run: |
           sudo apt-get update
           sudo apt-get install -y jq gh
 
-      # 3️⃣ Check if an existing auto PR is already open
-      - name: Check for existing auto PR
-        id: checkpr
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "Checking for existing auto PRs..."
-          existing_pr=$(gh pr list --state open --search "head:auto-bash-update" --json number --jq '.[0].number' || true)
-
-          if [ -n "$existing_pr" ]; then
-            echo "Auto PR already exists (#$existing_pr)."
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "No existing auto PR found."
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      # ✅ Skip entire workflow if PR already exists
-      - name: Stop job if PR exists
-        if: steps.checkpr.outputs.exists == 'true'
-        run: |
-          echo "Skipping script fetch since an auto PR already exists."
-          exit 0
-
-      # 4️⃣ Fetch topics and collect Bash scripts
+      # 3️⃣ Fetch topics and collect Bash scripts
       - name: Fetch Bash scripts by repo topics
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -60,17 +36,15 @@ jobs:
             "https://api.github.com/repos/$REPO/topics")
 
           topics=($(echo "$topics_json" | jq -r '.names[]'))
-
           echo "Found topics: ${topics[*]}"
 
           mkdir -p scripts
           any_changes=false
 
           for topic in "${topics[@]}"; do
-            echo "🔍 Searching for Bash repos with topic: $topic"
+            echo "🔍 Searching Bash repos with topic: $topic"
             search_url="https://api.github.com/search/repositories?q=topic:$topic+language:bash&sort=stars&order=desc"
-            repos=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$search_url" \
-                    | jq -r '.items[:5][] | .clone_url')
+            repos=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$search_url" | jq -r '.items[:5][] | .clone_url')
 
             for repo in $repos; do
               echo "⤵️ Cloning $repo"
@@ -89,33 +63,35 @@ jobs:
             done
           done
 
-          echo "any_changes=$any_changes" >> $GITHUB_ENV
+          if [ "$any_changes" = true ]; then
+            echo "✅ New scripts found, preparing pull request..."
+            branch="auto-bash-update-$(date +%s)"
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            git checkout -b "$branch"
+            git add scripts/
+            git commit -m "Auto fetch new Bash scripts by repo topics"
+            git push origin "$branch"
 
-      # 5️⃣ Create PR only if new scripts exist
-      - name: Create Pull Request
-        if: env.any_changes == 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-        run: |
-          branch="auto-bash-update-$(date +%s)"
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git checkout -b "$branch"
-          git add scripts/
-          git commit -m "Auto fetch new Bash scripts by repo topics"
-          git push origin "$branch"
+            # Check if a similar PR already exists
+            existing_pr=$(gh pr list --state open --json headRefName -q '.[] | select(.headRefName=="'$branch'") | .headRefName')
+            if [ -z "$existing_pr" ]; then
+              gh pr create \
+                --title "Auto fetch new Bash scripts" \
+                --body "$(cat <<EOF
+Hey @DisabledAbel 👋  
 
-          gh pr create \
-            --title "Auto fetch new Bash scripts" \
-            --body "Hey @DisabledAbel 👋  
 This PR adds new Bash scripts fetched from repositories that share the same topics as **${REPO}**.  
 Please review and approve before merging.  
-*(Generated automatically)*" \
-            --base main \
-            --head "$branch"
 
-      # 6️⃣ No changes found → do nothing
-      - name: No new scripts
-        if: env.any_changes != 'true'
-        run: echo "⚪ No new scripts found. No PR created."
+*(Generated automatically by GitHub Actions)*
+EOF
+)"
+                --base main \
+                --head "$branch"
+            else
+              echo "⚪ Skipping PR creation — one already exists for branch $branch."
+            fi
+          else
+            echo "⚪ No new scripts found. No pull request created."
+          fi
