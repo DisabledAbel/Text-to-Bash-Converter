@@ -1,60 +1,121 @@
-name: 🌀 Fetch Bash Scripts
+name: Fetch Bash Scripts by Repo Topics (PR Approval)
 
 on:
+  workflow_dispatch:
   schedule:
-    - cron: "0 */12 * * *"  # Every 12 hours
-  workflow_dispatch:        # Allow manual run
+    # Runs every 10 minutes
+    - cron: '*/10 * * * *'
 
 jobs:
-  fetch:
+  fetch-scripts:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
 
     steps:
-      - name: 🛠️ Checkout repo
+      # 1️⃣ Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: ⚙️ Set up environment
+      # 2️⃣ Install dependencies
+      - name: Install jq and GitHub CLI
         run: |
+          sudo apt-get update
+          sudo apt-get install -y jq gh
+
+      # 3️⃣ Check if an existing auto PR is already open
+      - name: Check for existing auto PR
+        id: checkpr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Checking for existing auto PRs..."
+          existing_pr=$(gh pr list --state open --search "head:auto-bash-update" --json number --jq '.[0].number' || true)
+
+          if [ -n "$existing_pr" ]; then
+            echo "Auto PR already exists (#$existing_pr)."
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "No existing auto PR found."
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      # ✅ Skip entire workflow if PR already exists
+      - name: Stop job if PR exists
+        if: steps.checkpr.outputs.exists == 'true'
+        run: |
+          echo "Skipping script fetch since an auto PR already exists."
+          exit 0
+
+      # 4️⃣ Fetch topics and collect Bash scripts
+      - name: Fetch Bash scripts by repo topics
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          echo "Fetching topics for $REPO ..."
+          topics_json=$(curl -s -H "Accept: application/vnd.github+json" \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$REPO/topics")
+
+          topics=($(echo "$topics_json" | jq -r '.names[]'))
+
+          echo "Found topics: ${topics[*]}"
+
           mkdir -p scripts
-          echo "Existing scripts:"
-          ls scripts || true
+          any_changes=false
 
-      - name: 🔍 Search and fetch Bash repos
-        run: |
-          echo "🔍 Searching for top Bash repositories..."
-          curl -s "https://api.github.com/search/repositories?q=language:bash+stars:>10&sort=stars&order=desc&per_page=5" > repos.json
+          for topic in "${topics[@]}"; do
+            echo "🔍 Searching for Bash repos with topic: $topic"
+            search_url="https://api.github.com/search/repositories?q=topic:$topic+language:bash&sort=stars&order=desc"
+            repos=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$search_url" \
+                    | jq -r '.items[:5][] | .clone_url')
 
-          repos=$(jq -r '.items[].full_name' repos.json)
-          echo "📦 Found repos:"
-          echo "$repos"
+            for repo in $repos; do
+              echo "⤵️ Cloning $repo"
+              git clone --depth 1 "$repo" temp_repo
 
-          for repo in $repos; do
-            echo "➡️ Checking $repo ..."
-            rm -rf temp-repo
-            git clone --depth=1 "https://github.com/$repo.git" temp-repo || continue
+              for file in temp_repo/*.sh; do
+                [ -f "$file" ] || continue
+                dest="scripts/$(basename "$repo")-$(basename "$file")"
+                if [ ! -f "$dest" ]; then
+                  cp "$file" "$dest"
+                  any_changes=true
+                fi
+              done
 
-            find temp-repo -type f -name "*.sh" | while read -r script; do
-              filename=$(basename "$script")
-              newname="scripts/${repo//\//_}-${filename}"
-
-              # Skip if file already exists
-              if [ -f "$newname" ]; then
-                echo "⚠️ Skipping existing $newname"
-                continue
-              fi
-
-              cp "$script" "$newname"
-              echo "✅ Added $newname ($(wc -c < "$newname") bytes)"
+              rm -rf temp_repo
             done
           done
 
-      - name: 🧹 Clean up temp folder
-        run: rm -rf temp-repo repos.json || true
+          echo "any_changes=$any_changes" >> $GITHUB_ENV
 
-      - name: 💾 Commit and push changes
+      # 5️⃣ Create PR only if new scripts exist
+      - name: Create Pull Request
+        if: env.any_changes == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
         run: |
+          branch="auto-bash-update-$(date +%s)"
           git config user.name "github-actions"
-          git config user.email "actions@github.com"
+          git config user.email "github-actions@github.com"
+          git checkout -b "$branch"
           git add scripts/
-          git diff --cached --quiet || git commit -m "Auto fetch new bash scripts"
-          git push
+          git commit -m "Auto fetch new Bash scripts by repo topics"
+          git push origin "$branch"
+
+          gh pr create \
+            --title "Auto fetch new Bash scripts" \
+            --body "Hey @DisabledAbel 👋  
+This PR adds new Bash scripts fetched from repositories that share the same topics as **${REPO}**.  
+Please review and approve before merging.  
+*(Generated automatically)*" \
+            --base main \
+            --head "$branch"
+
+      # 6️⃣ No changes found → do nothing
+      - name: No new scripts
+        if: env.any_changes != 'true'
+        run: echo "⚪ No new scripts found. No PR created."
