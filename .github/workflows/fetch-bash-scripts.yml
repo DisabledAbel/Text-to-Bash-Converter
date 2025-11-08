@@ -5,12 +5,13 @@ on:
   schedule:
     - cron: '*/10 * * * *'
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   fetch-scripts:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
 
     steps:
       - name: Checkout repository
@@ -33,10 +34,10 @@ jobs:
             -H "Authorization: token $GITHUB_TOKEN" \
             "https://api.github.com/repos/$REPO/topics")
 
-          # If there are no topics, exit early
           topics_count=$(echo "$topics_json" | jq -r '.names | length')
           if [ "$topics_count" -eq 0 ]; then
             echo "No topics found for $REPO. Exiting."
+            echo "ANY_CHANGES=false" >> $GITHUB_ENV
             exit 0
           fi
 
@@ -68,8 +69,11 @@ jobs:
             done
           done
 
-          # Export flag for subsequent steps
-          echo "ANY_CHANGES=$any_changes" >> $GITHUB_ENV
+          if [ "$any_changes" = true ]; then
+            echo "ANY_CHANGES=true" >> $GITHUB_ENV
+          else
+            echo "ANY_CHANGES=false" >> $GITHUB_ENV
+          fi
 
       - name: Create Pull Request (if changes)
         if: env.ANY_CHANGES == 'true'
@@ -79,6 +83,15 @@ jobs:
         run: |
           set -euo pipefail
 
+          # If there's already an open auto-bash-update PR, skip creating another.
+          echo "Checking for existing open auto-bash-update PRs..."
+          existing_heads=$(gh pr list --state open --json headRefName --jq '.[].headRefName' || true)
+          if echo "$existing_heads" | grep -E '^auto-bash-update' >/dev/null 2>&1; then
+            echo "Found existing auto-bash-update PR. Skipping creation."
+            exit 0
+          fi
+
+          # Create branch, push, and open PR
           branch="auto-bash-update-$(date +%s)"
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
@@ -87,11 +100,7 @@ jobs:
           git commit -m "Auto fetch new Bash scripts by repo topics" || { echo "Nothing to commit."; exit 0; }
           git push origin "$branch"
 
-          # Check for existing PRs with this head
-          existing_pr=$(gh pr list --state open --head "$branch" --json number --jq '.[0].number' || true)
-
-          if [ -z "$existing_pr" ]; then
-            pr_body=$(cat <<'EOF'
+          pr_body=$(cat <<'EOF'
 Hey @DisabledAbel 👋
 
 This PR adds new Bash scripts fetched from repositories that share the same topics as the repository.
@@ -100,11 +109,9 @@ Please review and approve before merging.
 *(Generated automatically by GitHub Actions)*
 EOF
 )
-            gh pr create --title "Auto fetch new Bash scripts" --body "$pr_body" --base main --head "$branch"
-            echo "PR created for branch $branch"
-          else
-            echo "A PR already exists for branch $branch (PR #$existing_pr). Skipping PR creation."
-          fi
+
+          gh pr create --title "Auto fetch new Bash scripts" --body "$pr_body" --base main --head "$branch"
+          echo "PR created for branch $branch"
 
       - name: No new scripts
         if: env.ANY_CHANGES != 'true'
