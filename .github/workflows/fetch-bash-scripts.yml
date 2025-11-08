@@ -14,17 +14,14 @@ jobs:
       pull-requests: write
 
     steps:
-      # 1️⃣ Checkout repo
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Install required tools
       - name: Install jq and GitHub CLI
         run: |
-          sudo apt-get update
+          sudo apt-get update -y
           sudo apt-get install -y jq gh
 
-      # 3️⃣ Fetch topics and collect Bash scripts
       - name: Fetch Bash scripts by repo topics
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -76,17 +73,16 @@ jobs:
             # Check if a similar PR already exists
             existing_pr=$(gh pr list --state open --json headRefName -q '.[] | select(.headRefName=="'$branch'") | .headRefName')
             if [ -z "$existing_pr" ]; then
+              pr_body="Hey @DisabledAbel 👋
+
+This PR adds new Bash scripts fetched from repositories that share the same topics as **${REPO}**.
+Please review and approve before merging.
+
+*(Generated automatically by GitHub Actions)*"
+
               gh pr create \
                 --title "Auto fetch new Bash scripts" \
-                --body "$(cat <<EOF
-Hey @DisabledAbel 👋  
-
-This PR adds new Bash scripts fetched from repositories that share the same topics as **${REPO}**.  
-Please review and approve before merging.  
-
-*(Generated automatically by GitHub Actions)*
-EOF
-)"
+                --body "$pr_body" \
                 --base main \
                 --head "$branch"
             else
