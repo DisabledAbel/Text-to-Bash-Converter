@@ -1,4 +1,4 @@
-name: Deploy React App with Redirect
+name: Build & Deploy React with Redirect
 
 on:
   push:
@@ -11,24 +11,57 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      # 2️⃣ Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 20
 
+      # 3️⃣ Install dependencies
       - name: Install dependencies
         run: npm ci
 
+      # 4️⃣ Build React app
       - name: Build React App
         run: npm run build
 
+      # 5️⃣ Add static redirect HTML
+      - name: Add GitHub Pages redirect
+        run: |
+          mkdir -p redirect
+          cat > redirect/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <title>Redirecting…</title>
+            <meta http-equiv="refresh" content="0; url=https://preview--tech-to-bash.lovable.app" />
+            <script>
+              window.location.replace("https://preview--tech-to-bash.lovable.app");
+            </script>
+          </head>
+          <body>
+            <p style="text-align:center; margin-top:50px;">
+              Redirecting… If you are not redirected automatically, 
+              <a href="https://preview--tech-to-bash.lovable.app">click here</a>.
+            </p>
+          </body>
+          </html>
+          EOF
+
+      # 6️⃣ Copy React build to redirect folder (optional if you want React available)
+      - name: Copy React build (optional)
+        run: |
+          cp -r build/* redirect/
+
+      # 7️⃣ Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build
-          # Optional: specify the branch
-          # publish_branch: gh-pages
+          publish_dir: ./redirect
+          publish_branch: gh-pages
