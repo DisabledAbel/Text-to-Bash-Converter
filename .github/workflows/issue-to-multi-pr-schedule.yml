@@ -1,0 +1,75 @@
+name: Scheduled Multi-Script PR Generator
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"  # Every 10 minutes
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  generate-multi-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh jq
+
+      - name: Fetch new bash issues
+        id: issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          issues=$(gh issue list --label bash --state open --json number,body,user --jq '.[] | select(.body | contains("bash:")) | .number')
+          echo "issues=$issues" >> $GITHUB_OUTPUT
+
+      - name: Process each issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for issue in ${{ steps.issues.outputs.issues }}; do
+            echo "Processing issue #$issue"
+            body=$(gh issue view $issue --json body -q '.body')
+            author=$(gh issue view $issue --json user -q '.user.login')
+            pr_links=""
+
+            mkdir -p generated/issue-$issue
+            i=0
+
+            # Extract each bash code block
+            while read -r block; do
+              [ -z "$block" ] && continue
+              i=$((i+1))
+              file="generated/issue-$issue/script_$i.sh"
+              echo "$block" > "$file"
+              chmod +x "$file"
+
+              branch="issue-$issue-script-$i"
+              git checkout -B "$branch"
+              git add "$file"
+              git commit -m "Generated script $i from issue #$issue" || echo "No changes"
+              git push origin "$branch" --force
+
+              # Create PR per script if it doesn't exist
+              gh pr view "$branch" >/dev/null 2>&1 || \
+              pr_url=$(gh pr create --title "Script $i for Issue #$issue" \
+                --body "Generated from issue #$issue\nRequested by @$author" \
+                --base main --head "$branch" --label auto-generated \
+                --json url -q '.url')
+              
+              pr_links="$pr_links- $pr_url\n"
+            done < <(echo "$body" | awk '/```bash/,/```/ {if(!/```/) print}')
+
+            # Comment all PR links back on the issue
+            if [ -n "$pr_links" ]; then
+              gh issue comment $issue --body "Generated PRs for all detected bash scripts:\n$pr_links"
+            fi
+          done
