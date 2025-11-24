@@ -1,0 +1,66 @@
+name: Scheduled Bash Script Generator
+
+on:
+  schedule:
+    # Runs every 10 minutes
+    - cron: "*/10 * * * *"
+  workflow_dispatch: # manual trigger
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  generate-bash:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh jq
+
+      - name: Fetch new bash issues
+        id: issues
+        run: |
+          issues=$(gh issue list --label bash --state open --json number,body,user --jq '.[] | select(.body | contains("bash:")) | .number')
+          echo "issues=$issues" >> $GITHUB_OUTPUT
+
+      - name: Process each issue
+        run: |
+          for issue in ${{ steps.issues.outputs.issues }}; do
+            echo "Processing issue #$issue"
+            # Fetch body and author
+            body=$(gh issue view $issue --json body -q '.body')
+            author=$(gh issue view $issue --json user -q '.user.login')
+
+            # Extract bash code blocks
+            mkdir -p generated/issue-$issue
+            i=0
+            while read -r block; do
+              [ -z "$block" ] && continue
+              i=$((i+1))
+              file="generated/issue-$issue/script_$i.sh"
+              echo "$block" > "$file"
+              chmod +x "$file"
+            done < <(echo "$body" | awk '/```bash/,/```/ {if(!/```/) print}')
+
+            # Commit and push branch
+            branch="issue-$issue-scripts"
+            git checkout -B "$branch"
+            git add generated/issue-$issue
+            git commit -m "Generated scripts from issue #$issue"
+            git push origin "$branch" --force
+
+            # Create or update PR
+            gh pr view "issue-$issue-scripts" >/dev/null 2>&1 || \
+            gh pr create --title "Scripts for Issue #$issue" \
+              --body "Generated bash scripts from issue #$issue.\nRequested by @$author." \
+              --base main --head "$branch" --label auto-generated
+
+            # Comment back on issue
+            gh issue comment $issue --body "A PR with generated scripts has been created or updated."
+          done
