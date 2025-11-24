@@ -28,7 +28,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          issues=$(gh issue list --label bash --state open --json number,body,user --jq '.[] | select(.body | contains("bash:")) | .number')
+          issues=$(gh issue list --label bash --state open --json number,body,author --jq '.[] | select(.body | contains("bash:")) | .number')
           echo "issues=$issues" >> $GITHUB_OUTPUT
 
       - name: Process each issue
@@ -37,8 +37,10 @@ jobs:
         run: |
           for issue in ${{ steps.issues.outputs.issues }}; do
             echo "Processing issue #$issue"
+
+            # Fetch body and author (fixed author field)
             body=$(gh issue view $issue --json body -q '.body')
-            author=$(gh issue view $issue --json user -q '.user.login')
+            author=$(gh issue view $issue --json author -q '.author.login')
             pr_links=""
 
             mkdir -p generated/issue-$issue
@@ -64,7 +66,7 @@ jobs:
                 --body "Generated from issue #$issue\nRequested by @$author" \
                 --base main --head "$branch" --label auto-generated \
                 --json url -q '.url')
-              
+
               pr_links="$pr_links- $pr_url\n"
             done < <(echo "$body" | awk '/```bash/,/```/ {if(!/```/) print}')
 
