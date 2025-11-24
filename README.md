@@ -1,7 +1,8 @@
 # Tech to Bash Converter
 
-A beautiful, responsive web application that converts your tech code, commands, and snippets into properly formatted bash code blocks for GitHub, documentation, and other markdown platforms.
-
+[![Fetch Bash Scripts by Repo Topics (PR Approval)](https://github.com/DisabledAbel/Text-to-Bash-Converter/actions/workflows/fetch-bash-scripts.yml/badge.svg)](https://github.com/DisabledAbel/Text-to-Bash-Converter/actions/workflows/fetch-bash-scripts.yml)
+[![Scheduled Multi-Script PR Generator](https://github.com/DisabledAbel/Text-to-Bash-Converter/actions/workflows/issue-to-multi-pr-schedule.yml/badge.svg)](https://github.com/DisabledAbel/Text-to-Bash-Converter/actions/workflows/issue-to-multi-pr-schedule.yml)
+**A beautiful, responsive web application that converts your tech code, commands, and snippets into properly formatted bash code blocks for GitHub, documentation, and other markdown platforms.**
 ## ✨ Features
 
 - **Real-time Conversion**: Instantly converts your input to bash code blocks as you type
