@@ -8,6 +8,8 @@ import { Copy, Trash2, Code2, Check, ChevronsUpDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import githubPreviewImage from "@/assets/github-preview.png";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 type OutputFormat = 
   | "bash" 
@@ -437,9 +439,23 @@ const TextConverter = () => {
                             </div>
                           </div>
                         </div>
-                        <pre className="p-4 text-sm font-mono text-foreground overflow-x-auto">
-                          <code>{command}</code>
-                        </pre>
+                        <SyntaxHighlighter
+                          language={outputFormat}
+                          style={oneDark}
+                          customStyle={{
+                            margin: 0,
+                            padding: "1rem",
+                            background: "transparent",
+                            fontSize: "0.875rem",
+                          }}
+                          codeTagProps={{
+                            style: {
+                              fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                            },
+                          }}
+                        >
+                          {command}
+                        </SyntaxHighlighter>
                       </div>
                     ))}
                   </div>
