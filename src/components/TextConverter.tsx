@@ -442,13 +442,6 @@ const TextConverter = () => {
                         <SyntaxHighlighter
                           language={outputFormat}
                           style={oneDark}
-                          showLineNumbers
-                          lineNumberStyle={{
-                            minWidth: "2em",
-                            paddingRight: "1em",
-                            color: "hsl(var(--muted-foreground))",
-                            userSelect: "none",
-                          }}
                           customStyle={{
                             margin: 0,
                             padding: "1rem",
