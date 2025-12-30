@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -111,7 +111,32 @@ const TextConverter = () => {
   const [output, setOutput] = useState("");
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("bash");
   const [open, setOpen] = useState(false);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const { toast } = useToast();
+
+  // Parse input into individual commands for rendering
+  const commands = useMemo(() => {
+    return input.split("\n").filter(line => line.trim());
+  }, [input]);
+
+  const copyIndividualBlock = async (command: string, index: number) => {
+    const codeBlock = `\`\`\`${outputFormat}\n${command}\n\`\`\``;
+    try {
+      await navigator.clipboard.writeText(codeBlock);
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 2000);
+      toast({
+        title: "Copied!",
+        description: "Code block copied to clipboard",
+      });
+    } catch (err) {
+      toast({
+        title: "Copy failed",
+        description: "Could not copy to clipboard",
+        variant: "destructive",
+      });
+    }
+  };
 
   const formats = [
     { value: "bash", label: "Bash" },
@@ -387,20 +412,36 @@ const TextConverter = () => {
             <div className="min-h-[400px] bg-card rounded-md border border-border overflow-hidden">
               {output ? (
                 <div className="h-full flex flex-col">
-                  <div className="p-4 bg-card">
-                    <div className="bg-code-bg rounded-md border border-border overflow-x-auto">
-                      <div className="flex items-center justify-between px-4 py-2 bg-secondary/50 border-b border-border">
-                        <span className="text-xs text-muted-foreground font-mono">{outputFormat}</span>
-                        <div className="flex gap-1">
-                          <div className="w-3 h-3 rounded-full bg-destructive/40"></div>
-                          <div className="w-3 h-3 rounded-full bg-yellow-500/40"></div>
-                          <div className="w-3 h-3 rounded-full bg-green-500/40"></div>
+                  <div className="p-4 bg-card space-y-3 max-h-[350px] overflow-y-auto">
+                    {commands.map((command, index) => (
+                      <div key={index} className="bg-code-bg rounded-md border border-border overflow-x-auto group relative">
+                        <div className="flex items-center justify-between px-4 py-2 bg-secondary/50 border-b border-border">
+                          <span className="text-xs text-muted-foreground font-mono">{outputFormat}</span>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => copyIndividualBlock(command, index)}
+                              className="h-6 px-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              {copiedIndex === index ? (
+                                <Check className="h-3 w-3 text-green-500" />
+                              ) : (
+                                <Copy className="h-3 w-3" />
+                              )}
+                            </Button>
+                            <div className="flex gap-1">
+                              <div className="w-3 h-3 rounded-full bg-destructive/40"></div>
+                              <div className="w-3 h-3 rounded-full bg-yellow-500/40"></div>
+                              <div className="w-3 h-3 rounded-full bg-green-500/40"></div>
+                            </div>
+                          </div>
                         </div>
+                        <pre className="p-4 text-sm font-mono text-foreground overflow-x-auto">
+                          <code>{command}</code>
+                        </pre>
                       </div>
-                      <pre className="p-4 text-sm font-mono text-foreground overflow-x-auto">
-                        <code>{input}</code>
-                      </pre>
-                    </div>
+                    ))}
                   </div>
                   <div className="flex-1">
                     <img 
