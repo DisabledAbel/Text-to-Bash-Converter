@@ -1,4 +1,4 @@
-name: Fetch Bash Scripts by Repo Topics (PR Approval)
+name: Fetch Bash Scripts by Repo Topics
 
 on:
   workflow_dispatch:
